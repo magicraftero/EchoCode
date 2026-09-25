@@ -1,3 +1,83 @@
 {
-  "report": "sample"
+  "_comment": "SAMPLE DATA — This file is illustrative only. It shows the intended structure of an EchoCode investigation report. All values are fictional placeholders. No tests were actually executed to produce this file.",
+  "_sample_data": true,
+
+  "run_id": "echocode-run-20240601-001",
+  "analyzed_commit": "abc1234def5678901234567890abcdef12345678",
+  "timestamp": "2024-06-01T14:32:00Z",
+  "pipeline_version": "0.1.0-foundation",
+
+  "findings": [
+    {
+      "finding_id": "F-001",
+      "title": "Discount applied before tax calculation",
+      "component": "checkout/pricing.py",
+      "description": "When a promotional discount is applied, the discount reduces the pre-tax subtotal. Tax is then calculated on the discounted amount. For certain discount codes the resulting tax figure is lower than expected, producing an incorrect final charge.",
+      "status": "candidate",
+      "confidence": "medium",
+      "note": "Status is 'candidate' — this finding has not been confirmed as a defect. Confirmation requires successful reproduction in the demo application and a passing verification test.",
+      "related_historical_fix": "HF-2023-018"
+    },
+    {
+      "finding_id": "F-002",
+      "title": "Rounding truncates fractional cents instead of rounding",
+      "component": "checkout/pricing.py",
+      "description": "The final charge is converted to an integer number of cents using integer truncation (int(amount * 100)) rather than rounding (round(amount * 100)). For certain amounts this silently drops a fraction of a cent, causing a small but consistent undercharge.",
+      "status": "candidate",
+      "confidence": "low",
+      "note": "Status is 'candidate' — further investigation required before this can be considered a confirmed defect.",
+      "related_historical_fix": null
+    }
+  ],
+
+  "evidence": [
+    {
+      "evidence_id": "E-001",
+      "type": "incident_report",
+      "source": "artifacts/example-run/incident-report.json",
+      "summary": "Customer reported incorrect charge of $9.89 instead of expected $10.00 on order ORD-SAMPLE-001.",
+      "relevant_to_findings": ["F-001", "F-002"]
+    },
+    {
+      "evidence_id": "E-002",
+      "type": "historical_fix",
+      "source": "memory/historical-fix-HF-2023-018.json",
+      "summary": "Prior fix applied in commit deadbeef: moved discount application to post-tax step to avoid tax base reduction.",
+      "relevant_to_findings": ["F-001"]
+    },
+    {
+      "evidence_id": "E-003",
+      "type": "code_excerpt",
+      "source": "demo/generator/pricing.py",
+      "summary": "Line 42: final_amount = int(subtotal_after_discount * tax_rate * 100). Discount reduces tax base; result is truncated rather than rounded.",
+      "relevant_to_findings": ["F-001", "F-002"]
+    }
+  ],
+
+  "verification_results": {
+    "_comment": "ILLUSTRATIVE ONLY — These are example verification result structures. No pytest tests have been written or executed yet. Actual results will replace these when Joshua's verification component is complete.",
+    "tests_executed": false,
+    "illustrative_examples": [
+      {
+        "test_id": "test_correct_charge_after_discount",
+        "description": "Apply a 10% discount to a $10.00 item and verify the final charge matches expected value.",
+        "illustrative_outcome": "FAIL — expected 900 cents, got 891 cents",
+        "relates_to_finding": "F-001"
+      },
+      {
+        "test_id": "test_rounding_not_truncation",
+        "description": "Verify that fractional cent amounts are rounded, not truncated.",
+        "illustrative_outcome": "FAIL — int(9.999) returns 9, not 10",
+        "relates_to_finding": "F-002"
+      }
+    ]
+  },
+
+  "limitations": [
+    "No tests have been executed yet. The verification_results section above contains illustrative examples only.",
+    "The demo application has not been implemented. Findings have not been reproduced and must not be treated as confirmed defects.",
+    "The code excerpts in evidence are synthetic placeholder values; they do not reflect actual source files in this repository.",
+    "Historical fix references (e.g. HF-2023-018) are fictional and used only to illustrate the intended report structure.",
+    "This sample report will be replaced by real run output once pipeline components are implemented."
+  ]
 }
