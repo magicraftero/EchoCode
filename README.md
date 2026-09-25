@@ -1,68 +1,41 @@
-# IBM Hackathon GitHub Project Template
+# EchoCode
 
-This GitHub project template is for IBM Hackathon projects. It includes pre-configured security files to help prevent accidental credential commits and potential account suspension during the hackathon.
+This repository is organized by shared contracts/orchestration and team-owned execution areas.
 
-## 🚀 Quick Start
+## Repository layout and ownership
 
-1. **Use this template to create your project:**
-   - Click "Use this template" button above and select "Create a new repository"
-   - Name your repository
-   - Click "Create repository"
+```text
+echocode/
+  README.md
+  contracts/                  # Shared; Senthuran coordinates
+    failure-signature.schema.json
+    candidate-findings.schema.json
+    report.schema.json
+    sample-report.json
+  workflow/                   # Shared orchestration instructions
+    project-brief.md
+    coordinator-prompt.md
+    agent-prompts/
+  demo/                       # Arindam
+    generator/
+    evidence-templates/
+  investigation/              # Sughra
+    prompts/
+    evidence_tools/
+  analysis/                   # Abdulwahid
+    prompts/
+    candidate_tools/
+  verification/               # Joshua
+    tests/
+    runner/
+    report_builder/
+  dashboard/                  # Senthuran
+  memory/                     # Verified reusable failure records
+  artifacts/example-run/      # Small sanitized real run
+  runs/                       # Generated local runs; ignored by Git
+```
 
-2. **Clone your new repository:**
+## Security reminder
 
-   ```bash
-   git clone https://github.com/HACKATHON-ORG/your-repo-name.git
-   cd your-repo-name
-   ```
-
-3. **Set up environment variables:**
-
-   ```bash
-   # Copy the example file
-   cp .env.example .env
-
-   # Edit .env with your actual credentials
-   # Use your preferred editor (nano, vim, code, etc.)
-   nano .env
-   ```
-
-4. **Verify .gitignore is working:**
-
-   ```bash
-   # This should NOT show .env file
-   git status
-
-   # This should confirm .env is ignored
-   git check-ignore -v .env
-   ```
-
-5. **Start developing!**
-
-## 🔒 Security Features
-
-This template includes:
-
-- **`.gitignore`** - Prevents committing credentials and live session files
-- **`.bobignore`** - Prevents AI assistants from logging credentials
-- **`.env.example`** - Template for your environment variables
-
-## 📋 Before Every Commit
-
-Always run this checklist:
-
-- [ ] Reviewed `git diff` for sensitive data
-- [ ] No hardcoded API keys or passwords
-- [ ] `.env` file is NOT in staged changes
-- [ ] No files with "credential" or "secret" in name
-- [ ] Used environment variables for all credentials
-
-## 🆘 Need Help?
-
-- Read [SECURITY.md](SECURITY.MD) for detailed guidelines
-- Contact hackathon support through mentor channel
-- Ask in the hackathon Slack workspace
-
----
-
-**Remember:** Security is everyone's responsibility. When in doubt, ask for help!
+- Keep secrets out of source control (see `.gitignore` and `.bobignore`)
+- Use `.env.example` as the template for local environment configuration
