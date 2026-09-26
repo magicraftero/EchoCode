@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "produced_at": "2026-09-26",
+  "stage": "current-code-analysis",
+  "source_branch": "feat/current-code-analysis",
+
+  "findings": [
+    {
+      "finding_id": "CF-001",
+      "title": "Unguarded Durable Write in Refund Processor — Retry May Produce Duplicate Refund Record",
+      "status": "candidate",
+
+      "historical_pattern_reference": {
+        "case_id": "echocode-case-001-duplicate-operation",
+        "pattern_name": "Unguarded Durable Write on Repeated Logical Operation",
+        "failure_signature_file": "investigation/failure-signature.json",
+        "history_map_file": "investigation/history-map.json",
+        "pattern_summary": "A caller-supplied logical identifier (operation_id / idempotency key) exists for the operation, but the durable write path is reached unconditionally on every invocation. No prior-existence check exists. A retry or resubmission with the same identifier creates a second independent record in the durable store, violating the invariant that one logical operation produces exactly one durable effect."
+      },
+
+      "current_code_references": [
+        {
+          "ref_id": "CR-001",
+          "path": "demo/current/refund_processor.py",
+          "lines": "43-54",
+          "description": "Schema definition for refund_records table. refund_reference column carries TEXT NOT NULL but has NO UNIQUE constraint. A second INSERT with the same refund_reference is structurally permitted by the schema."
+        },
+        {
+          "ref_id": "CR-002",
+          "path": "demo/current/refund_processor.py",
+          "lines": "83-90",
+          "description": "Core write path inside process_refund(). A bare INSERT INTO refund_records is executed unconditionally. No prior SELECT or existence check precedes the INSERT. No INSERT OR IGNORE or equivalent deduplication guard is present."
+        },
+        {
+          "ref_id": "CR-003",
+          "path": "demo/current/refund_processor.py",
+          "lines": "57-61",
+          "description": "Function signature: process_refund(refund_reference, account_id, amount). refund_reference is the caller-supplied logical identifier for the refund request — it is the direct analogue of operation_id in the historical pattern."
+        },
+        {
+          "ref_id": "CR-004",
+          "path": "demo/current/tests/test_refund_processor.py",
+          "lines": "22-101",
+          "description": "Existing test suite covers single refunds, two distinct references, and reset. No test exercises the retry scenario: submitting the same refund_reference twice and asserting that only one record exists."
+        }
+      ],
+
+      "matching_conditions": [
+        {
+          "condition_id": "MC-01",
+          "historical_condition": "A logical operation has a unique caller-supplied identifier (an operation_id or equivalent idempotency key).",
+          "current_evidence": "process_refund() accepts refund_reference as its first argument. The README and parameter docstring describe it as 'Caller-supplied identifier for this refund request.' This is structurally identical to operation_id in the historical payment processor."
+        },
+        {
+          "condition_id": "MC-02",
+          "historical_condition": "The operation has a durable write path that is reached on every invocation, regardless of prior history.",
+          "current_evidence": "Lines 83-90 of refund_processor.py contain a bare INSERT INTO refund_records ... VALUES (?, ?, ?, ?). There is no conditional logic before this INSERT. Every call to process_refund() executes this INSERT unconditionally."
+        },
+        {
+          "condition_id": "MC-03",
+          "historical_condition": "No deduplication check or enforcement mechanism exists at the point where the durable write occurs.",
+          "current_evidence": "No SELECT precedes the INSERT. No INSERT OR IGNORE or ON CONFLICT clause is present. The table schema (lines 43-54) does not declare UNIQUE on refund_reference. The application layer contains no lookup for prior records with the same refund_reference."
+        },
+        {
+          "condition_id": "MC-04",
+          "historical_condition": "The caller is able to resubmit the same operation — whether due to a retry, a network fault, a message-queue redelivery, or user double-submission.",
+          "current_evidence": "process_refund() is a plain Python function with no built-in call-count enforcement. Nothing in the module prevents the caller from invoking it multiple times with the same refund_reference. The module is described as a refund-processing component, a domain in which client retries after network timeouts are an expected operational scenario."
+        }
+      ],
+
+      "non_matching_conditions": [
+        {
+          "condition_id": "NM-01",
+          "aspect": "Technology stack",
+          "historical_detail": "Python + SQLite3, table named 'ledger', identifier column named 'operation_id'.",
+          "current_detail": "Python + SQLite3, table named 'refund_records', identifier column named 'refund_reference'. The technology is the same; the names differ. The failure-signature explicitly notes the pattern is not specific to these names.",
+          "relevance": "Cosmetic difference — does not affect applicability of the pattern."
+        },
+        {
+          "condition_id": "NM-02",
+          "aspect": "Domain",
+          "historical_detail": "Payment processing (charges to an account).",
+          "current_detail": "Refund processing (credits to an account). The failure-signature's analogous_contexts list explicitly includes 'Refund processing: duplicate refund for a retried refund request' as a known variant.",
+          "relevance": "Domain difference is anticipated by the pattern; does not weaken the match."
+        },
+        {
+          "condition_id": "NM-03",
+          "aspect": "Additional column: processed_at",
+          "historical_detail": "Historical ledger stored (id, operation_id, account_id, amount_cents).",
+          "current_detail": "refund_records stores (id, refund_reference, account_id, amount_cents, processed_at). The processed_at timestamp column is extra. It is not involved in deduplication logic and would differ between two INSERTs of the same refund_reference, but its presence does not prevent the duplicate from occurring.",
+          "relevance": "The extra column does not provide any deduplication enforcement. Immaterial to the pattern match."
+        },
+        {
+          "condition_id": "NM-04",
+          "aspect": "No confirmed retry scenario observed",
+          "historical_detail": "Historical case had an observed real run output showing 2 rows for the same operation_id, plus a failing pytest assertion.",
+          "current_detail": "The current analysis is code-level only. No behavioral reproduction test has been run against refund_processor.py with a repeated refund_reference. The duplicate-record outcome is inferred from structural analysis, not from observed test output.",
+          "relevance": "This is the key non-match: the finding is structural/candidate only. Confirmation requires a behavioral test."
+        }
+      ],
+
+      "reasoning": "Every structural precondition identified in the historical failure pattern is present in the current refund_processor.py: (1) a caller-supplied idempotency key (refund_reference), (2) an unconditional durable write path (bare INSERT, lines 83-90), (3) no deduplication mechanism at any layer (no SELECT guard, no UNIQUE constraint on refund_reference, no ON CONFLICT clause). The existing test suite deliberately tests only distinct references and does not probe the retry scenario. The failure-signature's analogous_contexts explicitly names refund processing as a known variant of this failure class. The structural match across all four required conditions is high. The finding is held at 'candidate' because no behavioral reproduction test has been executed — the outcome of submitting the same refund_reference twice has not been observed at runtime.",
+
+      "proposed_behavioral_test": {
+        "description": "A verification test that exercises the retry scenario against a live instance of process_refund(). The test submits the same refund_reference twice and asserts that exactly one record exists in refund_records afterward. If the assertion fails with count=2, the structural candidate is behaviorally confirmed.",
+        "preconditions": [
+          "Call refund_processor.initialise(db_path=':memory:') to start with an empty store.",
+          "Define refund_reference='REF-RETRY-001', account_id='ACC-TEST', amount=19.99."
+        ],
+        "steps": [
+          "Step 1: Call process_refund('REF-RETRY-001', 'ACC-TEST', 19.99) — simulates original submission.",
+          "Step 2: Call process_refund('REF-RETRY-001', 'ACC-TEST', 19.99) again — simulates client retry with identical refund_reference.",
+          "Step 3: Call get_refunds() and count the returned records."
+        ],
+        "expected_record_count": 1,
+        "failure_indicator": "If get_refunds() returns 2 records, the retry was not deduplicated. This confirms the behavioral pattern: one logical refund produced two durable effects.",
+        "invariant_being_tested": "One logical refund, identified by a unique refund_reference, must produce exactly one record in refund_records regardless of how many times it is submitted.",
+        "suggested_test_location": "verification/tests/test_duplicate_refund.py",
+        "note": "This test must NOT be created yet. It is described here as input to the verification stage only."
+      },
+
+      "confidence": "high",
+      "confidence_rationale": "All four required structural conditions from the failure signature are present with direct code-level evidence. The domain (refund processing) is explicitly listed as a known variant in the failure signature. The only uncertainty is behavioral: no test has been run. Confidence in the structural match is high; confirmation awaits the verification stage.",
+
+      "limitations": [
+        "This finding is based on static code analysis only. No behavioral test has been executed against demo/current/refund_processor.py.",
+        "The finding status MUST remain 'candidate' until a behavioral reproduction test in the verification stage confirms that two calls with the same refund_reference produce two refund_records rows.",
+        "The module uses an in-memory SQLite database by default. The retry scenario must be tested within a single process session to observe the duplicate, as :memory: databases do not persist across process restarts.",
+        "Concurrent call scenarios (two simultaneous submissions of the same refund_reference) are not addressed by this analysis and are not covered by the proposed test.",
+        "The failure-signature was extracted from a single synthetic demonstration case. This is the second application of the pattern, but it has not yet been validated across additional independent incidents beyond this one."
+      ],
+
+      "unresolved_questions": [
+        "Will a behavioral test against the current code confirm count=2 for a retried refund_reference, or is there some runtime guard not visible in the static source?",
+        "Should a deduplicated retry return the original record silently, or return a distinct 'already processed' response? The historical fix chose silent absorption; the appropriate contract for refunds may differ.",
+        "How long should a refund_reference remain active as a deduplication key? The historical fix never expired entries; for long-lived refund systems this may be impractical.",
+        "Is there an upstream caller or API layer (not present in this repository) that provides deduplication before reaching process_refund()? If so, the structural risk may be mitigated externally."
+      ]
+    }
+  ]
+}
