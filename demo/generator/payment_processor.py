@@ -34,7 +34,7 @@ def init_db() -> None:
             """
             CREATE TABLE IF NOT EXISTS ledger (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
-                operation_id TEXT    NOT NULL,
+                operation_id TEXT    NOT NULL UNIQUE,
                 account_id   TEXT    NOT NULL,
                 amount_cents INTEGER NOT NULL,
                 recorded_at  TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -70,12 +70,18 @@ def process_payment(operation_id: str, account_id: str, amount: float) -> dict:
     with _connect() as conn:
         cursor = conn.execute(
             """
-            INSERT INTO ledger (operation_id, account_id, amount_cents)
+            INSERT OR IGNORE INTO ledger (operation_id, account_id, amount_cents)
             VALUES (?, ?, ?)
             """,
             (operation_id, account_id, amount_cents),
         )
-        row_id = cursor.lastrowid
+        if cursor.lastrowid:
+            row_id = cursor.lastrowid
+        else:
+            row_id = conn.execute(
+                "SELECT id FROM ledger WHERE operation_id = ?",
+                (operation_id,),
+            ).fetchone()["id"]
 
     return {
         "row_id": row_id,
