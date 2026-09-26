@@ -44,7 +44,7 @@ def initialise(db_path: str = ":memory:") -> None:
         """
         CREATE TABLE IF NOT EXISTS refund_records (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
-            refund_reference TEXT    NOT NULL,
+            refund_reference TEXT    NOT NULL UNIQUE,
             account_id       TEXT    NOT NULL,
             amount_cents     INTEGER NOT NULL,
             processed_at     TEXT    NOT NULL
@@ -80,9 +80,9 @@ def process_refund(
     amount_cents = round(amount * 100)
     processed_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-    cursor = conn.execute(
+    conn.execute(
         """
-        INSERT INTO refund_records (refund_reference, account_id, amount_cents, processed_at)
+        INSERT OR IGNORE INTO refund_records (refund_reference, account_id, amount_cents, processed_at)
         VALUES (?, ?, ?, ?)
         """,
         (refund_reference, account_id, amount_cents, processed_at),
@@ -90,8 +90,8 @@ def process_refund(
     conn.commit()
 
     row = conn.execute(
-        "SELECT * FROM refund_records WHERE id = ?",
-        (cursor.lastrowid,),
+        "SELECT * FROM refund_records WHERE refund_reference = ?",
+        (refund_reference,),
     ).fetchone()
 
     return dict(row)
