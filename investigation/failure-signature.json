@@ -1,0 +1,169 @@
+{
+  "case_id": "echocode-case-001-duplicate-operation",
+  "schema_version": "1.0",
+  "extracted_at": "2026-09-26",
+  "extraction_status": "complete",
+
+  "historical_bug_commit":   "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+  "verification_commit":     "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+  "historical_fix_commit":   "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+
+  "reported_behavior": "Calling process_payment() twice with the same operation_id silently inserts two rows into the ledger. A client retry — resubmitting the same logical payment after a network timeout — produces a second charge for the same operation. The system accepts the duplicate without error or warning.",
+
+  "trigger": "The same logical operation is submitted more than once without modification. The submissions share an identical operation_id (the caller-supplied idempotency key). This occurs naturally in retry scenarios: a client sends a request, receives no response due to a timeout, and resends the identical request.",
+
+  "required_conditions": [
+    "A logical operation has a unique caller-supplied identifier (an operation_id or equivalent idempotency key).",
+    "The operation has a durable write path that is reached on every invocation, regardless of prior history.",
+    "No deduplication check or enforcement mechanism exists at the point where the durable write occurs.",
+    "The caller is able to resubmit the same operation — whether due to a retry, a network fault, a message-queue redelivery, or user double-submission."
+  ],
+
+  "observed_failure": {
+    "description": "Each invocation of process_payment() with the same operation_id creates a new, independent ledger row. After two invocations with operation_id='pay-retry-001' the ledger contains 2 rows. The expected count is 1.",
+    "ledger_count_before_fix": 2,
+    "ledger_count_expected": 1,
+    "operation_id_used": "pay-retry-001",
+    "amount_cents": 1999,
+    "evidence_type": "OBSERVED — real pytest run on commit context f616bcd",
+    "pytest_outcome": "FAILED",
+    "pytest_assertion": "AssertionError: Duplicate-operation defect: expected 1 ledger entry after a retry with operation_id='pay-retry-001', got 2. The retry was not deduplicated.",
+    "note": "Normal-operation tests (4 passed) were unaffected — the defect manifests only when the same operation_id is reused."
+  },
+
+  "expected_invariant": "One logical operation, identified by a unique operation_id, must produce exactly one durable persistent effect regardless of how many times it is submitted. Resubmission must be detected and deduplicated; it must not cause an additional write to the durable store.",
+
+  "historical_repair_behavior": {
+    "description": "The repair enforces that the durable write path is reached at most once per operation_id. A second submission with the same operation_id is silently absorbed: no new row is created, and the caller receives the result of the original operation. The observable contract of process_payment() is preserved — the caller still receives a valid row_id — but the ledger remains at one entry.",
+    "behavioral_change": "Before the repair: every call to process_payment() unconditionally created a new ledger row. After the repair: a call with a previously-seen operation_id does not create a new row; it returns the id of the existing row.",
+    "regression_test_outcome_after_fix": "PASSED",
+    "normal_tests_outcome_after_fix": "4 passed — no regression in correct behavior",
+    "evidence_type": "OBSERVED — real pytest run on commit 5af395a",
+    "note": "The repair operates at the point of the durable write, not at a higher orchestration layer. The caller interface (function signature, return type) is unchanged."
+  },
+
+  "reusable_failure_pattern": {
+    "name": "Unguarded Durable Write on Repeated Logical Operation",
+    "summary": "A retry or repeated submission of the same logical operation reaches the durable write path more than once, violating the invariant that one logical operation produces one durable effect.",
+    "detailed_description": "Whenever a system assigns a unique identifier to a logical operation and provides a code path that clients can invoke multiple times — due to retries, redeliveries, or double-submission — each invocation must be checked against a record of prior executions before any durable side effect is applied. If the check is absent, every invocation is treated as a new, independent operation. The durable store accumulates one extra entry per retry, even though the caller's intent was for only one effect to occur. This pattern appears wherever there is a combination of: (1) a client-supplied or system-assigned logical identity for an operation, (2) a durable write path reachable on every invocation, and (3) no enforcement mechanism at the write point.",
+    "general_risk_indicators": [
+      "A function or endpoint accepts an operation_id, idempotency key, request_id, or equivalent caller-supplied identifier.",
+      "The function unconditionally writes to a durable store (database, ledger, event log, message queue, external service) on every call.",
+      "No prior-existence check precedes the write.",
+      "The durable store schema does not enforce uniqueness on the operation identifier column or field.",
+      "The calling environment is capable of retrying: network clients, message consumers, batch processors, webhook handlers."
+    ],
+    "analogous_contexts": [
+      "Payment processing: duplicate charge for a retried payment request",
+      "Refund processing: duplicate refund for a retried refund request",
+      "Fund transfer: duplicate debit or credit for a retried transfer",
+      "Inventory adjustment: double-adjustment for a retried stock write",
+      "Audit / event log: duplicate audit entry for a retried action",
+      "Webhook handler: duplicate processing of a redelivered webhook event",
+      "Message queue consumer: duplicate effect from a redelivered message"
+    ],
+    "what_to_look_for_in_future_code": "Look for write operations on durable stores where the function accepts an identifier for the logical operation but does not first check whether that identifier has already been processed. The absence of a uniqueness enforcement mechanism — whether enforced at the database layer, application layer, or both — is the structural precondition for this failure class.",
+    "note": "This pattern is not specific to SQLite, INSERT statements, or Python. The behavioral failure — retry reaches durable write path more than once — applies to any technology stack, any durable store, and any retry mechanism."
+  },
+
+  "evidence": [
+    {
+      "evidence_id": "E-FS-001",
+      "type": "buggy_source_code",
+      "path": "demo/generator/payment_processor.py",
+      "commit": "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+      "relevant_lines": "30-44 (schema: no UNIQUE on operation_id), 70-77 (bare INSERT, no guard)",
+      "status": "OBSERVED",
+      "summary": "process_payment() performs a bare INSERT. The ledger schema has no UNIQUE constraint on operation_id. Every call creates a new row unconditionally."
+    },
+    {
+      "evidence_id": "E-FS-002",
+      "type": "regression_test",
+      "path": "verification/tests/test_duplicate_operation.py",
+      "commit": "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+      "status": "OBSERVED",
+      "summary": "Behavioral regression test asserting one operation_id produces one ledger entry. Documents the business invariant and the retry scenario."
+    },
+    {
+      "evidence_id": "E-FS-003",
+      "type": "fail_test_run",
+      "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+      "at_commit_context": "f616bcd (buggy implementation)",
+      "status": "OBSERVED — real run",
+      "outcome": "1 failed, 4 passed",
+      "failing_test": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
+      "assertion": "got 2 ledger entries, expected 1"
+    },
+    {
+      "evidence_id": "E-FS-004",
+      "type": "fix_diff",
+      "path": "demo/generator/payment_processor.py",
+      "commit": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "status": "OBSERVED",
+      "diff_summary": "Schema: operation_id column gains UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; return path handles the already-exists case by querying the existing row id.",
+      "behavioral_effect": "A second call with the same operation_id is silently absorbed; no new ledger row is created."
+    },
+    {
+      "evidence_id": "E-FS-005",
+      "type": "pass_test_run",
+      "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+      "at_commit_context": "5af395a (fixed implementation)",
+      "status": "OBSERVED — real run",
+      "outcome": "5 passed",
+      "note": "All normal-operation tests continue to pass; no regression introduced by the repair."
+    }
+  ],
+
+  "code_references": [
+    "demo/generator/payment_processor.py:30-44 — ledger schema (UNIQUE constraint absent pre-fix, present post-fix)",
+    "demo/generator/payment_processor.py:57-85 — process_payment() function (bare INSERT pre-fix, INSERT OR IGNORE + lookup post-fix)",
+    "verification/tests/test_duplicate_operation.py:59-87 — regression test scenario and invariant assertion"
+  ],
+
+  "commit_references": [
+    {
+      "sha": "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+      "role": "bug_introduction",
+      "message": "feat: add synthetic duplicate-operation demo",
+      "note": "Defect present from first introduction of payment_processor.py. No deduplication guard was ever written."
+    },
+    {
+      "sha": "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+      "role": "regression_test_added",
+      "message": "test: add duplicate-operation regression",
+      "note": "Regression test documents and captures the invariant violation. Test FAILS at this point in history."
+    },
+    {
+      "sha": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "role": "historical_fix",
+      "message": "fix: prevent duplicate payment operations",
+      "note": "Repair enforces deduplication at the durable write point. Regression test PASSES at this point."
+    }
+  ],
+
+  "confidence": "high",
+  "confidence_rationale": "The full evidence chain is present: a buggy commit, a behavioral regression test that fails against it, a fixing commit, and real pytest runs confirming both FAIL and PASS outcomes. No evidence was invented.",
+
+  "implementation_details_deliberately_excluded_from_pattern": [
+    "The specific SQL mechanism used: UNIQUE constraint on a SQLite column.",
+    "The specific SQL syntax used: INSERT OR IGNORE.",
+    "The specific fallback used to recover the existing row id: SELECT id WHERE operation_id = ?.",
+    "The specific language and database: Python + SQLite3.",
+    "The specific table and column names: ledger, operation_id, id.",
+    "The specific operation_id values used in tests: pay-retry-001, pay-001."
+  ],
+
+  "limitations": [
+    "This signature was extracted from a single synthetic demonstration case. The generalized pattern has not yet been validated against a second independent incident.",
+    "The demo is deliberately minimal (in-process SQLite). Real-world implementations may involve distributed systems, external payment APIs, or message queues — the behavioral pattern applies but the deduplication mechanism may differ significantly.",
+    "The signature captures behavioral failure and required conditions. It does not prescribe a specific remediation — appropriate deduplication strategies vary by system.",
+    "The regression test covers the retry scenario only. Other duplicate-submission vectors (double-click, message redelivery, batch retry) are behaviorally equivalent but not separately tested in this history."
+  ],
+
+  "unresolved_questions": [
+    "What happens if two concurrent calls with the same operation_id arrive simultaneously? The historical fix uses a database UNIQUE constraint which provides atomic enforcement, but race conditions at the application layer are not tested.",
+    "Should a duplicate submission return the original result silently, or should it return a distinguishable response indicating deduplication occurred? The historical repair chooses silent absorption — whether this is the correct API contract is a design question.",
+    "How long should an operation_id remain active as a deduplication key? The historical repair never expires entries. For long-lived systems, unbounded retention may be impractical.",
+    "Does the failure pattern generalize to non-idempotent corrections (e.g., partial retries where the first attempt partially succeeded)? That scenario is not covered by this evidence."
+  ]
+}

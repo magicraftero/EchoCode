@@ -12,7 +12,10 @@
   "verification_commit_branch": "origin/feat/verification-senthuran",
   "verification_commit_author": "Senthuran Srimurugan",
 
-  "fix_commit": null,
+  "fix_commit": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+  "fix_commit_message": "fix: prevent duplicate payment operations",
+  "fix_commit_date": "2026-09-26",
+  "fix_commit_author": "Senthuran Srimurugan",
 
   "relevant_files": [
     "demo/generator/payment_processor.py",
@@ -35,17 +38,31 @@
     "note": "Two rows with identical operation_id. Defect observed directly."
   },
 
-  "verification_status": "REGRESSION TEST FAILING — defect confirmed by real pytest run",
+  "verification_status": "HISTORICAL CHAIN COMPLETE — FAIL and PASS evidence both confirmed by real pytest runs",
+  "pattern_extraction_status": "complete",
+  "failure_signature_file": "investigation/failure-signature.json",
 
-  "regression_test_result": {
+  "regression_test_result_before_fix": {
     "test_file": "verification/tests/test_duplicate_operation.py",
     "test_function": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
-    "command": "python3 -m pytest verification/tests/test_duplicate_operation.py -v",
-    "outcome": "FAILED",
-    "assertion_message": "Duplicate-operation defect: expected 1 ledger entry after a retry with operation_id='pay-retry-001', got 2. The retry was not deduplicated.",
+    "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+    "at_commit_context": "f616bcd (buggy implementation)",
+    "outcome": "1 failed, 4 passed",
+    "failing_assertion": "Duplicate-operation defect: expected 1 ledger entry after a retry with operation_id='pay-retry-001', got 2. The retry was not deduplicated.",
     "expected_ledger_count": 1,
     "actual_ledger_count": 2,
     "note": "Real pytest output — not invented. Run captured on feat/investigation branch."
+  },
+
+  "regression_test_result_after_fix": {
+    "test_file": "verification/tests/test_duplicate_operation.py",
+    "test_function": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
+    "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+    "at_commit_context": "5af395a (fixed implementation)",
+    "outcome": "5 passed",
+    "expected_ledger_count": 1,
+    "actual_ledger_count": 1,
+    "note": "Real pytest output — not invented. Run captured on feat/investigation branch using fixed file from git show 5af395a."
   },
 
   "normal_operation_tests": {
@@ -86,15 +103,21 @@
         "99c9e09 — Shared project foundation (no application code)",
         "1afb53b — Demo application introduced (defect present from introduction)",
         "139ec13 — Merge PR #3 bringing demo to main",
-        "f616bcd — Regression test added (defect confirmed, no fix yet)"
+        "f616bcd — Regression test added (defect confirmed, FAILS at this point)",
+        "5af395a — Fix applied; regression test PASSES at this point"
       ],
-      "summary": "Git history shows the defect was present from the first moment demo code was introduced. No later commit alters payment_processor.py. No fix commit exists anywhere in the repository or remote branches."
+      "summary": "Full historical chain: bug introduction → regression test capturing invariant violation → fix making regression pass. All three commits confirmed real and inspected."
+    },
+    {
+      "evidence_id": "E-INV-005",
+      "type": "fix_diff",
+      "commit": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "path": "demo/generator/payment_processor.py",
+      "diff_summary": "Schema: operation_id column gains UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; fallback reads existing row id when the write is suppressed.",
+      "behavioral_change": "A second call with the same operation_id no longer creates a new ledger row. The caller receives the id of the existing row.",
+      "note": "Inspected via git show 5af395a and git diff f616bcd..5af395a."
     }
   ],
 
-  "missing_evidence": [
-    "A fixing commit that adds deduplication / idempotency enforcement to process_payment() and makes the regression test pass.",
-    "A PASS run of test_duplicate_operation.py against a corrected implementation.",
-    "A post-fix diff showing what behavioral change resolved the invariant violation."
-  ]
+  "missing_evidence": []
 }
