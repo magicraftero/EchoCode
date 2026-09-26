@@ -7,8 +7,20 @@
   "findings": [
     {
       "finding_id": "CF-001",
-      "title": "Unguarded Durable Write in Refund Processor — Retry May Produce Duplicate Refund Record",
-      "status": "candidate",
+      "title": "Unguarded Durable Write in Refund Processor — Retry Produces Duplicate Refund Record",
+      "status": "confirmed",
+      "status_history": [
+        {
+          "status": "candidate",
+          "set_at": "2026-09-26",
+          "reason": "All four structural conditions from the failure signature matched in static analysis. No behavioral test had been executed at analysis time. Finding held at candidate pending verification stage."
+        },
+        {
+          "status": "confirmed",
+          "set_at": "2026-09-27",
+          "reason": "Independent behavioral regression test (verification/tests/test_duplicate_refund.py) executed at commit f5f4597. Test submitted the same refund_reference twice and asserted exactly one record. Test FAILED — actual count was 2, expected 1. Behavioral reproduction confirmed. CF-001 promoted to confirmed."
+        }
+      ],
 
       "historical_pattern_reference": {
         "case_id": "echocode-case-001-duplicate-operation",
@@ -116,25 +128,66 @@
         "failure_indicator": "If get_refunds() returns 2 records, the retry was not deduplicated. This confirms the behavioral pattern: one logical refund produced two durable effects.",
         "invariant_being_tested": "One logical refund, identified by a unique refund_reference, must produce exactly one record in refund_records regardless of how many times it is submitted.",
         "suggested_test_location": "verification/tests/test_duplicate_refund.py",
-        "note": "This test must NOT be created yet. It is described here as input to the verification stage only."
+        "note": "Test was created at commit f5f4597 and executed. See verification_evidence below."
       },
 
-      "confidence": "high",
-      "confidence_rationale": "All four required structural conditions from the failure signature are present with direct code-level evidence. The domain (refund processing) is explicitly listed as a known variant in the failure signature. The only uncertainty is behavioral: no test has been run. Confidence in the structural match is high; confirmation awaits the verification stage.",
+      "verification_evidence": {
+        "regression_test_file": "verification/tests/test_duplicate_refund.py",
+        "regression_test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+        "regression_test_commit": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+
+        "before_repair": {
+          "at_commit_context": "f5f4597 (buggy refund_processor.py — bare INSERT, no UNIQUE constraint on refund_reference)",
+          "normal_refund_tests": {
+            "test_file": "demo/current/tests/test_refund_processor.py",
+            "outcome": "5 passed",
+            "note": "All normal single-refund and two-distinct-reference tests pass. Defect is specific to repeated refund_reference."
+          },
+          "duplicate_refund_regression": {
+            "test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+            "outcome": "FAIL",
+            "assertion": "CF-001 behaviorally reproduced: expected 1 refund record after a retry with refund_reference='REF-RETRY-001', got 2. The retry was not deduplicated — one logical refund produced 2 durable records.",
+            "expected_durable_records": 1,
+            "actual_durable_records": 2
+          },
+          "status": "OBSERVED — behavioral regression reproduced the predicted failure"
+        },
+
+        "after_repair": {
+          "at_commit_context": "e1ce00f (repaired refund_processor.py — INSERT OR IGNORE + UNIQUE constraint on refund_reference)",
+          "repair_commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+          "repair_diff_summary": "Schema: refund_reference column gains UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; return path changed to SELECT WHERE refund_reference = ? to handle the already-exists case.",
+          "normal_refund_tests": {
+            "test_file": "demo/current/tests/test_refund_processor.py",
+            "outcome": "5 passed",
+            "note": "No regression in correct behavior — all normal-operation tests continue to pass."
+          },
+          "duplicate_refund_regression": {
+            "test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+            "outcome": "PASS",
+            "expected_durable_records": 1,
+            "actual_durable_records": 1
+          },
+          "combined_suite_outcome": "6 passed",
+          "status": "OBSERVED — same regression PASSES after repair; deduplication confirmed"
+        }
+      },
+
+      "confidence": "confirmed",
+      "confidence_rationale": "All four required structural conditions from the failure signature were present in static analysis. The behavioral regression test independently reproduced the defect (FAIL: count=2). After the repair was applied, the same regression test PASSES (count=1) and all normal-operation tests continue to pass. The full evidence chain — structural match, behavioral FAIL, repair, behavioral PASS — is complete and grounded in real commits and real pytest runs.",
 
       "limitations": [
-        "This finding is based on static code analysis only. No behavioral test has been executed against demo/current/refund_processor.py.",
-        "The finding status MUST remain 'candidate' until a behavioral reproduction test in the verification stage confirms that two calls with the same refund_reference produce two refund_records rows.",
-        "The module uses an in-memory SQLite database by default. The retry scenario must be tested within a single process session to observe the duplicate, as :memory: databases do not persist across process restarts.",
-        "Concurrent call scenarios (two simultaneous submissions of the same refund_reference) are not addressed by this analysis and are not covered by the proposed test.",
-        "The failure-signature was extracted from a single synthetic demonstration case. This is the second application of the pattern, but it has not yet been validated across additional independent incidents beyond this one."
+        "Finding was initially based on static code analysis only at analysis stage. Behavioral confirmation was obtained independently at verification stage.",
+        "The module uses an in-memory SQLite database by default. The retry scenario was tested within a single process session; persistence across process restarts is not tested.",
+        "Concurrent call scenarios (two simultaneous submissions of the same refund_reference) are not addressed by the regression test.",
+        "The failure-signature was extracted from a single synthetic demonstration case. This is the second application of the pattern — two instances increase confidence, but broad generalisation across additional independent incidents has not been validated.",
+        "The repair operates at the application layer using a database UNIQUE constraint. Race conditions between two truly concurrent submissions at the OS/network level are not covered."
       ],
 
       "unresolved_questions": [
-        "Will a behavioral test against the current code confirm count=2 for a retried refund_reference, or is there some runtime guard not visible in the static source?",
-        "Should a deduplicated retry return the original record silently, or return a distinct 'already processed' response? The historical fix chose silent absorption; the appropriate contract for refunds may differ.",
-        "How long should a refund_reference remain active as a deduplication key? The historical fix never expired entries; for long-lived refund systems this may be impractical.",
-        "Is there an upstream caller or API layer (not present in this repository) that provides deduplication before reaching process_refund()? If so, the structural risk may be mitigated externally."
+        "Should a deduplicated retry return the original record silently, or return a distinct 'already processed' response? The repair chose silent absorption — whether this is the correct API contract for refunds is a design question.",
+        "How long should a refund_reference remain active as a deduplication key? The repair never expires entries; for long-lived refund systems this may be impractical.",
+        "Is there an upstream caller or API layer (not present in this repository) that provides additional deduplication before reaching process_refund()?"
       ]
     }
   ]
