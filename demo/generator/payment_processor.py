@@ -77,12 +77,12 @@ def process_payment(operation_id: str, account_id: str, amount: float) -> dict:
         )
         row_id = cursor.lastrowid
 
-    return {
-        "row_id": row_id,
-        "operation_id": operation_id,
-        "account_id": account_id,
-        "amount_cents": amount_cents,
-    }
+    # return {
+    #     "row_id": row_id,
+    #     "operation_id": operation_id,
+    #     "account_id": account_id,
+    #     "amount_cents": amount_cents,
+    # }
 
 
 def get_ledger() -> list[dict]:
@@ -106,13 +106,24 @@ if __name__ == "__main__":
 
     reset_db()
 
-    print("\n[step 1] First call  — operation_id='pay-001', $19.99")
-    r1 = process_payment("pay-001", "acct-42", 19.99)
-    print(f"         inserted row {r1['row_id']} → {r1['amount_cents']} cents")
+    response = None
+    attempt = 1
+    max_attempts = 2
 
-    print("\n[step 2] Second call — same operation_id='pay-001', $19.99")
-    r2 = process_payment("pay-001", "acct-42", 19.99)
-    print(f"         inserted row {r2['row_id']} → {r2['amount_cents']} cents")
+    while response is None and attempt <= max_attempts:
+        print(
+            f"\n[attempt {attempt}] Calling process_payment — "
+            "operation_id='pay-001', $19.99"
+        )
+        response = process_payment("pay-001", "acct-42", 19.99)
+        
+        if response is None and attempt < max_attempts:
+            print("no return object received; retrying")
+
+        attempt += 1
+
+    if response is None:
+        raise TimeoutError("Payment processor did not return a result")
 
     ledger = get_ledger()
     print(f"\n[result] Ledger contains {len(ledger)} row(s)")

@@ -10,6 +10,7 @@ Run with:
 """
 
 import os
+import subprocess
 import sys
 import pytest
 
@@ -24,6 +25,7 @@ def isolated_db(tmp_path, monkeypatch):
     """Point every test at its own fresh SQLite file so tests never share state."""
     db_file = str(tmp_path / "test_payments.db")
     monkeypatch.setattr(pp, "DB_PATH", db_file)
+    monkeypatch.setenv("ECHOCODE_DB", db_file)
     pp.reset_db()
     yield
 
@@ -50,6 +52,27 @@ def test_two_different_operations_both_recorded():
     assert len(ledger) == 2
     ids = {r["operation_id"] for r in ledger}
     assert ids == {"pay-002", "pay-003"}
+
+
+def test_demo_script_does_not_create_duplicate_record():
+    """Running the demo must not create two records for the same operation."""
+    script_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "generator", "payment_processor.py")
+    )
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+
+    subprocess.run(
+        [sys.executable, script_path],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    ledger = pp.get_ledger()
+
+    assert len(ledger) == 1
 
 
 def test_reset_clears_ledger():
