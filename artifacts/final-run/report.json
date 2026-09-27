@@ -1,0 +1,363 @@
+{
+  "_note": "FINAL RUN REPORT — All values are grounded in real repository evidence. No test results, commits, or evidence items are invented. See field-level status annotations for epistemic confidence of each claim.",
+
+  "run_id": "echocode-run-2026-09-27-001",
+  "analyzed_commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+  "analyzed_commit_message": "fix: prevent duplicate refund operations",
+  "timestamp": "2026-09-27T00:00:08+01:00",
+  "pipeline_version": "0.1.0-foundation",
+  "branch": "feat/final-report",
+
+  "historical_case": {
+    "case_id": "echocode-case-001-duplicate-operation",
+    "title": "Duplicate Payment Operation — Unguarded Durable Write in Payment Processor",
+    "status": "OBSERVED / VERIFIED",
+
+    "commits": {
+      "demo_introduction": {
+        "sha": "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+        "message": "feat: add synthetic duplicate-operation demo",
+        "date": "2026-09-26",
+        "author": "Arindam Bindlish",
+        "role": "historical_payment_demo — defect present from first introduction; no deduplication guard was ever written"
+      },
+      "regression_test_added": {
+        "sha": "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+        "message": "test: add duplicate-operation regression",
+        "date": "2026-09-26",
+        "author": "Senthuran Srimurugan",
+        "role": "historical_payment_regression — behavioral regression test documents the invariant violation; test FAILS at this point"
+      },
+      "historical_fix": {
+        "sha": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+        "message": "fix: prevent duplicate payment operations",
+        "date": "2026-09-26",
+        "author": "Senthuran Srimurugan",
+        "role": "historical_payment_repair — repair enforces deduplication at the durable write point; regression test PASSES at this point"
+      }
+    },
+
+    "defect_summary": "When process_payment() was called twice with the same operation_id, both calls succeeded and two distinct rows were inserted into the ledger. A client retry — resubmitting the same logical payment after a network timeout — was treated as a brand-new operation. The ledger recorded two charges for one logical payment event.",
+
+    "regression_test_before_fix": {
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_operation.py",
+      "test_function": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
+      "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+      "at_commit_context": "f616bcd (buggy implementation)",
+      "outcome": "1 failed, 4 passed",
+      "normal_payment_tests_passed": 4,
+      "regression_test_outcome": "FAIL",
+      "expected_durable_records": 1,
+      "actual_durable_records": 2,
+      "failing_assertion": "Duplicate-operation defect: expected 1 ledger entry after a retry with operation_id='pay-retry-001', got 2. The retry was not deduplicated."
+    },
+
+    "regression_test_after_fix": {
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_operation.py",
+      "test_function": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
+      "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+      "at_commit_context": "5af395a (fixed implementation)",
+      "outcome": "5 passed",
+      "normal_payment_tests_passed": 4,
+      "regression_test_outcome": "PASS",
+      "expected_durable_records": 1,
+      "actual_durable_records": 1
+    },
+
+    "fix_diff_summary": "Schema: operation_id column gained UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; fallback reads existing row id when the write is suppressed.",
+    "source_files": [
+      "demo/generator/payment_processor.py",
+      "verification/tests/test_duplicate_operation.py"
+    ]
+  },
+
+  "learned_failure_pattern": {
+    "status": "OBSERVED — extracted from confirmed historical case, applied to current code",
+    "pattern_name": "Unguarded Durable Write on Repeated Logical Operation",
+    "failure_signature_file": "investigation/failure-signature.json",
+    "extracted_at_commit": "2b2c3db1b398ca35c83053c81cadc2dd15e19c79",
+    "extracted_at_commit_message": "feat: extract historical failure signature",
+
+    "summary": "A retry or repeated submission of the same logical operation reaches the durable write path more than once, violating the invariant that one logical operation produces exactly one durable effect.",
+
+    "required_conditions": [
+      "A logical operation has a unique caller-supplied identifier (an operation_id or equivalent idempotency key).",
+      "The operation has a durable write path that is reached on every invocation, regardless of prior history.",
+      "No deduplication check or enforcement mechanism exists at the point where the durable write occurs.",
+      "The caller is able to resubmit the same operation — whether due to a retry, a network fault, a message-queue redelivery, or user double-submission."
+    ],
+
+    "analogous_contexts_from_signature": [
+      "Payment processing: duplicate charge for a retried payment request",
+      "Refund processing: duplicate refund for a retried refund request",
+      "Fund transfer: duplicate debit or credit for a retried transfer",
+      "Inventory adjustment: double-adjustment for a retried stock write",
+      "Audit / event log: duplicate audit entry for a retried action",
+      "Webhook handler: duplicate processing of a redelivered webhook event",
+      "Message queue consumer: duplicate effect from a redelivered message"
+    ]
+  },
+
+  "findings": [
+    {
+      "finding_id": "CF-001",
+      "title": "Unguarded Durable Write in Refund Processor — Retry Produces Duplicate Refund Record",
+      "component": "demo/current/refund_processor.py",
+      "status": "CONFIRMED",
+
+      "status_history": [
+        {
+          "stage": "current-code-analysis",
+          "status": "CANDIDATE",
+          "commit": "291d9c944d254b0d0c01c2f26cbc76c2ed94e33e",
+          "commit_message": "feat: add current-code candidate finding",
+          "date": "2026-09-26",
+          "basis": "Static code analysis. All four structural conditions from the failure signature matched. No behavioral test had been executed."
+        },
+        {
+          "stage": "verification",
+          "status": "CONFIRMED",
+          "commit": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+          "commit_message": "test: reproduce duplicate refund finding",
+          "date": "2026-09-26",
+          "basis": "Independent behavioral regression test FAILED — submitting the same refund_reference twice produced 2 records. Structural candidate behaviorally reproduced."
+        }
+      ],
+
+      "description": "process_refund() in demo/current/refund_processor.py performs a bare INSERT INTO refund_records on every invocation. The refund_records schema carries no UNIQUE constraint on the refund_reference column. When the same refund_reference is submitted twice — as happens in a client retry after a network timeout — a second independent row is created. One logical refund operation produces two durable refund records, violating the idempotency invariant.",
+
+      "structural_evidence": {
+        "status": "OBSERVED",
+        "schema_lines": "43-54",
+        "schema_issue": "refund_reference TEXT NOT NULL — no UNIQUE constraint; a second INSERT with the same refund_reference is structurally permitted",
+        "write_path_lines": "83-90",
+        "write_path_issue": "Bare INSERT INTO refund_records executed unconditionally on every call; no prior SELECT, no INSERT OR IGNORE, no ON CONFLICT clause",
+        "function_signature_lines": "57-61",
+        "idempotency_key": "refund_reference — caller-supplied logical identifier, direct analogue of operation_id in the historical pattern"
+      },
+
+      "all_conditions_matched": true,
+      "matching_conditions": [
+        {
+          "condition_id": "MC-01",
+          "historical_condition": "A logical operation has a unique caller-supplied identifier (an operation_id or equivalent idempotency key).",
+          "current_evidence": "process_refund() accepts refund_reference as its first argument — the caller-supplied idempotency key, structurally identical to operation_id in the historical payment processor."
+        },
+        {
+          "condition_id": "MC-02",
+          "historical_condition": "The operation has a durable write path that is reached on every invocation, regardless of prior history.",
+          "current_evidence": "Lines 83-90 contain a bare INSERT INTO refund_records with no conditional logic preceding it. Every call executes this INSERT unconditionally."
+        },
+        {
+          "condition_id": "MC-03",
+          "historical_condition": "No deduplication check or enforcement mechanism exists at the point where the durable write occurs.",
+          "current_evidence": "No SELECT precedes the INSERT. No INSERT OR IGNORE or ON CONFLICT clause is present. The table schema does not declare UNIQUE on refund_reference. No application-layer lookup for prior records with the same refund_reference exists."
+        },
+        {
+          "condition_id": "MC-04",
+          "historical_condition": "The caller is able to resubmit the same operation — whether due to a retry, a network fault, a message-queue redelivery, or user double-submission.",
+          "current_evidence": "process_refund() is a plain Python function with no built-in call-count enforcement. Nothing in the module prevents the caller from invoking it multiple times with the same refund_reference."
+        }
+      ]
+    }
+  ],
+
+  "evidence": [
+    {
+      "evidence_id": "E-001",
+      "type": "source_code",
+      "status": "OBSERVED",
+      "path": "demo/current/refund_processor.py",
+      "commit": "9091734 (feat: add current refund processing scenario)",
+      "relevant_lines": "43-54 (schema), 57-61 (function signature), 83-90 (write path)",
+      "summary": "Buggy refund_processor.py: schema has no UNIQUE on refund_reference; process_refund() performs a bare unconditional INSERT on every call.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-002",
+      "type": "regression_test",
+      "status": "OBSERVED",
+      "path": "verification/tests/test_duplicate_refund.py",
+      "commit": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+      "summary": "Behavioral regression test asserting one refund_reference produces one refund_records row. Written independently from the static analysis, following the pattern of the historical regression test.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-003",
+      "type": "fail_test_run",
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_refund.py",
+      "test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+      "at_commit_context": "buggy refund_processor.py (before e1ce00f repair)",
+      "outcome": "FAIL — 1 failed, 5 passed",
+      "failing_assertion": "CF-001 behaviorally reproduced: expected 1 refund record after a retry with refund_reference='REF-RETRY-001', got 2. The retry was not deduplicated — one logical refund produced 2 durable records.",
+      "expected_durable_records": 1,
+      "actual_durable_records": 2,
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-004",
+      "type": "fix_diff",
+      "status": "OBSERVED",
+      "path": "demo/current/refund_processor.py",
+      "commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+      "commit_message": "fix: prevent duplicate refund operations",
+      "diff_summary": "Schema: refund_reference column gains UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; return path changed to SELECT WHERE refund_reference = ? to handle the already-exists case. Mirrors the pattern of the historical fix at 5af395a.",
+      "behavioral_effect": "A second call with the same refund_reference is silently absorbed; no new refund_records row is created. The caller receives the record of the original submission.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-005",
+      "type": "pass_test_run",
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_refund.py",
+      "test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+      "at_commit_context": "e1ce00f (repaired refund_processor.py)",
+      "combined_suite_outcome": "6 passed (1 regression + 5 normal-operation)",
+      "regression_test_outcome": "PASS",
+      "expected_durable_records": 1,
+      "actual_durable_records": 1,
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-006",
+      "type": "historical_failure_signature",
+      "status": "OBSERVED — extracted from confirmed historical case",
+      "path": "investigation/failure-signature.json",
+      "commit": "2b2c3db1b398ca35c83053c81cadc2dd15e19c79",
+      "summary": "Reusable behavioral failure pattern extracted from the historical payment processor case and applied to detect CF-001 in the current refund processor.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-007",
+      "type": "historical_fix_diff",
+      "status": "OBSERVED",
+      "path": "demo/generator/payment_processor.py",
+      "commit": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "commit_message": "fix: prevent duplicate payment operations",
+      "summary": "Historical repair: operation_id gained UNIQUE constraint; INSERT changed to INSERT OR IGNORE. Served as the direct structural template for the refund repair at e1ce00f.",
+      "relevant_to_findings": []
+    }
+  ],
+
+  "verification_results": {
+    "tests_executed": true,
+    "historical_case": {
+      "test_suite": "verification/tests/test_duplicate_operation.py + demo/tests/test_payment_processor.py",
+      "before_fix_outcome": "1 failed, 4 passed",
+      "before_fix_regression_result": "FAIL",
+      "after_fix_outcome": "5 passed",
+      "after_fix_regression_result": "PASS",
+      "status": "OBSERVED — real pytest runs on feat/investigation branch"
+    },
+    "current_case_cf001": {
+      "test_suite": "verification/tests/test_duplicate_refund.py + demo/current/tests/test_refund_processor.py",
+      "before_repair_outcome": "1 failed, 5 passed",
+      "before_repair_regression_result": "FAIL",
+      "after_repair_outcome": "6 passed",
+      "after_repair_regression_result": "PASS",
+      "status": "OBSERVED — real pytest run on feat/final-report branch"
+    }
+  },
+
+  "repair_verification": {
+    "finding_id": "CF-001",
+    "repair_commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+    "repair_commit_message": "fix: prevent duplicate refund operations",
+    "repair_commit_date": "2026-09-27",
+    "repair_author": "Senthuran Srimurugan",
+    "repair_mechanism": "UNIQUE constraint added to refund_reference column; INSERT changed to INSERT OR IGNORE; return path updated to SELECT WHERE refund_reference = ? (mirrors historical fix pattern at 5af395a)",
+    "repair_verification_status": "REPAIRED / VERIFIED",
+    "verification_test": "verification/tests/test_duplicate_refund.py::test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+    "regression_test_after_repair": "PASS",
+    "normal_tests_after_repair": "5 passed — no regression in correct behavior introduced by the repair",
+    "combined_suite_after_repair": "6 passed"
+  },
+
+  "commit_registry": [
+    {
+      "sha": "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+      "role": "historical_payment_demo",
+      "message": "feat: add synthetic duplicate-operation demo",
+      "date": "2026-09-26",
+      "author": "Arindam Bindlish",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+      "role": "historical_payment_regression",
+      "message": "test: add duplicate-operation regression",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "role": "historical_payment_repair",
+      "message": "fix: prevent duplicate payment operations",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "9091734 (90917340d9388aec663dab2bb3ca094579117a31)",
+      "role": "current_refund_scenario",
+      "message": "feat: add current refund processing scenario",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "291d9c944d254b0d0c01c2f26cbc76c2ed94e33e",
+      "role": "current_code_candidate_finding",
+      "message": "feat: add current-code candidate finding",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+      "role": "refund_behavioral_verification",
+      "message": "test: reproduce duplicate refund finding",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+      "role": "refund_repair",
+      "message": "fix: prevent duplicate refund operations",
+      "date": "2026-09-27",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    }
+  ],
+
+  "evidence_chain": [
+    { "step": 1,  "status": "OBSERVED",           "description": "Historical payment demo introduced at commit 1afb53b. process_payment() performs a bare INSERT with no deduplication guard. Defect present from first introduction." },
+    { "step": 2,  "status": "OBSERVED",           "description": "Historical behavioral regression test added at commit f616bcd. Test asserts one operation_id produces one ledger entry. Test FAILS — actual count is 2, expected 1." },
+    { "step": 3,  "status": "OBSERVED",           "description": "Historical payment repair applied at commit 5af395a. UNIQUE constraint added to operation_id; INSERT changed to INSERT OR IGNORE. Same regression test PASSES — count is 1." },
+    { "step": 4,  "status": "OBSERVED",           "description": "Failure signature extracted at commit 2b2c3db. Reusable behavioral pattern generalised: 'Unguarded Durable Write on Repeated Logical Operation'. Signature stored in investigation/failure-signature.json." },
+    { "step": 5,  "status": "OBSERVED",           "description": "Current refund scenario introduced at commit 9091734. demo/current/refund_processor.py written with bare INSERT and no UNIQUE constraint on refund_reference." },
+    { "step": 6,  "status": "OBSERVED / INFERRED","description": "Static code analysis at commit 291d9c9 identifies CF-001 as a CANDIDATE. All four required structural conditions from the failure signature match in refund_processor.py. Status held at candidate pending behavioral test." },
+    { "step": 7,  "status": "OBSERVED",           "description": "Independent behavioral regression test written at commit f5f4597 (verification/tests/test_duplicate_refund.py). Test executes process_refund() twice with the same refund_reference. Test FAILS — count is 2, expected 1. CF-001 behaviorally reproduced." },
+    { "step": 8,  "status": "CONFIRMED",          "description": "CF-001 promoted from CANDIDATE to CONFIRMED. Behavioral reproduction at step 7 confirms the structural prediction at step 6. One logical refund produced two durable records." },
+    { "step": 9,  "status": "OBSERVED",           "description": "Refund repair applied at commit e1ce00f. UNIQUE constraint added to refund_reference; INSERT changed to INSERT OR IGNORE; return path updated to SELECT WHERE refund_reference = ?. Mirrors the historical payment fix pattern." },
+    { "step": 10, "status": "REPAIRED / VERIFIED", "description": "Same refund regression test re-run after repair. Test PASSES — count is 1. All 5 normal-operation tests continue to pass. Combined suite: 6 passed. CF-001 is REPAIRED / VERIFIED." }
+  ],
+
+  "limitations": [
+    "SYNTHETIC / LOCAL DEMONSTRATION — This pipeline operates on a completely local, self-contained demonstration application. All data is synthetic. No real customers, accounts, or financial transactions are involved at any stage.",
+    "PYTHON + SQLITE PROTOTYPE — The demonstration uses Python with an in-memory SQLite database. The failure pattern is not specific to this stack, but the deduplication mechanism (SQL UNIQUE constraint + INSERT OR IGNORE) is SQLite-specific. Real-world systems may use different enforcement mechanisms.",
+    "SINGLE FAILURE FAMILY — Only one failure class was demonstrated end-to-end: 'Unguarded Durable Write on Repeated Logical Operation'. The pipeline has not been validated against other failure families. The failure-signature library contains one entry.",
+    "NO REAL FINANCIAL SYSTEM INTEGRATION — The refund and payment processors are synthetic demo components. No real payment gateway, banking API, or financial infrastructure is connected, queried, or simulated as live at any point.",
+    "NO PRODUCTION CI/CD INTEGRATION — Tests are run manually from the command line. There is no automated trigger, no CI pipeline, and no deployment gate that runs EchoCode on every commit.",
+    "HUMAN-REVIEWED GIT WORKFLOW — EchoCode proposes fixes only. No code change is automatically merged. A human must review, approve, and apply every proposed repair before it reaches a production environment.",
+    "NO AUTOMATIC CODE MERGE — The repair at commit e1ce00f was authored and committed by a team member. EchoCode identified and described the repair; it did not directly write, commit, or deploy any production code.",
+    "CONCURRENT SUBMISSION NOT TESTED — Race conditions involving two truly simultaneous submissions of the same refund_reference (or operation_id) at the OS or network layer are not covered by the regression tests. The UNIQUE constraint provides atomic enforcement at the database layer, but no test validates the concurrent case.",
+    "IN-MEMORY DATABASE SCOPE — The retry scenario was tested within a single process session using an :memory: SQLite database. Cross-process or cross-session persistence behaviour is not tested.",
+    "PATTERN GENERALISATION NOT EXTERNALLY VALIDATED — The failure signature was extracted from one historical case (payment processor) and applied to one current case (refund processor). Two instances increase confidence, but the pattern has not been validated against a third independent incident outside this repository."
+  ]
+}
