@@ -204,6 +204,9 @@ b { font-weight: 600; }
 }
 .dock-item:hover::after, .dock-item:focus-visible::after { opacity: 0; }
 .dock-item:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+.dock-home .logo-mark { transition: transform .45s var(--spring); }
+.dock-home:hover .logo-mark { transform: scale(1.12) rotate(-8deg); }
+.dock-sep { width: 1px; height: 20px; margin: 0 4px; background: var(--dock-line); flex-shrink: 0; }
 
 /* ─── Google Material 3 buttons ─────────────────────────────────────── */
 .gbtn {
@@ -1212,6 +1215,7 @@ b { font-weight: 600; }
   .dock-item:hover, .dock-item:focus-visible { padding: 0 8px; }
   .dock-item:hover .dock-label, .dock-item:focus-visible .dock-label { max-width: 0; opacity: 0; margin: 0; }
   .dock-item .ic { width: 18px; height: 18px; }
+  .dock-sep { margin: 0 2px; }
   .hero-inner { padding-top: 72px; }
   .float-chip, .scroll-cue { display: none; }
   .sheet { border-radius: 32px 32px 0 0; }

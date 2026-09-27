@@ -1,0 +1,462 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EchoCode — IBM Bob Task Session Summary</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    background: #ffffff;
+    color: #1f2328;
+    padding: 32px 16px 48px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  /* Header */
+  .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1f2328; }
+  .header .sub { font-size: 13px; color: #57606a; margin-top: 4px; }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .badge {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px;
+    border: 1px solid #e5e7eb; background: #f7f8fa; color: #57606a;
+  }
+  .badge.green { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+  .badge.blue  { background: #dbeafe; border-color: #93c5fd; color: #1e3a8a; }
+  .badge.purple{ background: #ede9fe; border-color: #c4b5fd; color: #4c1d95; }
+
+  /* Pipeline diagram */
+  .pipeline { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 28px; }
+  .pipe-box {
+    font-size: 11px; font-weight: 600; padding: 5px 10px;
+    border-radius: 6px; background: #f7f8fa; border: 1px solid #e5e7eb; color: #1f2328;
+    white-space: nowrap;
+  }
+  .pipe-box.done { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+  .pipe-arrow { color: #57606a; font-size: 14px; }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #57606a;
+    border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;
+  }
+
+  /* Task cards */
+  .task-card {
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px;
+    margin-bottom: 10px; background: #ffffff;
+  }
+  .task-card:last-child { margin-bottom: 0; }
+  .task-header { display: flex; align-items: flex-start; gap: 10px; }
+  .task-icon {
+    width: 20px; height: 20px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    background: #d1fae5; color: #065f46; border: 1.5px solid #6ee7b7;
+  }
+  .task-title { font-weight: 600; font-size: 14px; color: #1f2328; }
+  .task-owner { font-size: 12px; color: #57606a; margin-top: 2px; }
+  .task-detail { margin-top: 8px; padding-left: 30px; }
+  .task-detail ul { padding-left: 16px; }
+  .task-detail li { font-size: 13px; color: #1f2328; margin-bottom: 3px; }
+  .task-detail .muted { font-size: 12px; color: #57606a; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 7px; border-radius: 4px; margin-right: 4px;
+  }
+  .tag.confirmed { background: #d1fae5; color: #065f46; }
+  .tag.fixed     { background: #dbeafe; color: #1e3a8a; }
+  .tag.pass      { background: #d1fae5; color: #065f46; }
+  .tag.complete  { background: #ede9fe; color: #4c1d95; }
+
+  /* Finding highlight */
+  .finding-box {
+    background: #f7f8fa; border: 1px solid #e5e7eb; border-left: 3px solid #3b82d4;
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .finding-box .label { font-size: 11px; font-weight: 700; color: #3b82d4; text-transform: uppercase; letter-spacing: 0.05em; }
+  .finding-box .finding-title { font-size: 13px; font-weight: 600; color: #1f2328; margin-top: 3px; }
+  .finding-box .finding-meta  { font-size: 12px; color: #57606a; margin-top: 4px; }
+
+  /* Test results */
+  .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .test-card {
+    background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;
+  }
+  .test-card .tc-title { font-size: 12px; font-weight: 600; color: #1f2328; }
+  .test-card .tc-meta  { font-size: 12px; color: #57606a; margin-top: 4px; }
+  .test-card .tc-result { font-size: 12px; font-weight: 600; color: #065f46; margin-top: 4px; }
+
+  /* Commit table */
+  .commit-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .commit-table th {
+    text-align: left; font-weight: 600; color: #57606a;
+    padding: 6px 8px; border-bottom: 1px solid #e5e7eb;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .commit-table td { padding: 7px 8px; border-bottom: 1px solid #f3f4f6; color: #1f2328; vertical-align: top; }
+  .commit-table tr:last-child td { border-bottom: none; }
+  .sha { font-family: monospace; background: #f7f8fa; border: 1px solid #e5e7eb; padding: 1px 5px; border-radius: 4px; font-size: 11px; color: #57606a; }
+
+  /* Files table */
+  .files-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .files-table th {
+    text-align: left; font-weight: 600; color: #57606a;
+    padding: 6px 8px; border-bottom: 1px solid #e5e7eb;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .files-table td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; color: #1f2328; vertical-align: top; font-size: 12px; }
+  .files-table tr:last-child td { border-bottom: none; }
+  .mono { font-family: monospace; font-size: 11px; color: #57606a; }
+
+  /* Summary row */
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+  .summary-card {
+    background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 6px;
+    padding: 12px; text-align: center;
+  }
+  .summary-card .sc-num { font-size: 24px; font-weight: 700; color: #1f2328; }
+  .summary-card .sc-lbl { font-size: 11px; color: #57606a; margin-top: 2px; }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px; border-top: 1px solid #e5e7eb;
+    padding-top: 14px; text-align: center;
+    font-size: 12px; color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  
+  <div class="header">
+    <h1>EchoCode — IBM Bob Task Session Summary</h1>
+    <div class="sub">Complete record of all tasks completed in this Bob-assisted investigation pipeline session</div>
+    <div class="badge-row">
+      <span class="badge blue">Branch: feat/claude-dashboard</span>
+      <span class="badge green">Pipeline: COMPLETE</span>
+      <span class="badge green">Finding CF-001: CONFIRMED</span>
+      <span class="badge purple">All Tests: PASSING</span>
+    </div>
+  </div>
+
+  
+  <div class="pipeline">
+    <div class="pipe-box done">Demo</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box done">Investigation</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box done">Analysis</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box done">Verification</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box done">Dashboard</div>
+  </div>
+
+  
+  <div class="summary-grid">
+    <div class="summary-card"><div class="sc-num">5</div><div class="sc-lbl">Pipeline Stages</div></div>
+    <div class="summary-card"><div class="sc-num">1</div><div class="sc-lbl">Confirmed Finding</div></div>
+    <div class="summary-card"><div class="sc-num">11</div><div class="sc-lbl">Tests Passing</div></div>
+    <div class="summary-card"><div class="sc-num">19</div><div class="sc-lbl">Files Produced</div></div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 1 — Project Scaffolding &amp; Foundation</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Shared Foundation Setup</div>
+          <div class="task-owner">Branch: setup/shared-foundation</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <ul>
+          <li>Created five-stage pipeline architecture: <span class="mono">demo/ → investigation/ → analysis/ → verification/ → dashboard/</span></li>
+          <li>Defined component isolation rule: data exchange via JSON contracts only</li>
+          <li>Authored <span class="mono">workflow/project-brief.md</span>, <span class="mono">README.md</span>, <span class="mono">AGENTS.md</span>, <span class="mono">SECURITY.MD</span></li>
+          <li>Defined JSON contract schemas in <span class="mono">contracts/</span> with illustrative <span class="mono">sample-report.json</span></li>
+          <li>Established security constraints: synthetic data only, no real payment APIs, no hardcoded credentials</li>
+        </ul>
+        <div class="muted" style="margin-top:6px">Deliverable: Architecture, ownership model, and shared contracts established</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 2 — Demo Application (Historical &amp; Current Code)</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Historical Payment Processor Demo</div>
+          <div class="task-owner">Owner: Arindam Bindlish · Branch: feat/demo</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <ul>
+          <li>Built <span class="mono">demo/generator/payment_processor.py</span> — synthetic SQLite-backed payment simulation</li>
+          <li>Intentional defect introduced: bare INSERT with no duplicate-operation guard (allows duplicate records on retry)</li>
+          <li>Wrote <span class="mono">demo/tests/test_payment_processor.py</span> — 4 normal operation tests</li>
+          <li>Applied fix: UNIQUE constraint on <span class="mono">operation_id</span> + <span class="mono">INSERT OR IGNORE</span> + SELECT fallback</li>
+          <li>Post-fix: <span class="tag pass">4/4 PASS</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Current Refund Processor Demo (CF-001 target)</div>
+          <div class="task-owner">Owner: Arindam Bindlish · Branch: feat/demo</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <ul>
+          <li>Built <span class="mono">demo/current/refund_processor.py</span> — synthetic SQLite-backed refund simulation</li>
+          <li>Same structural defect: bare INSERT with no duplicate-refund guard</li>
+          <li>Wrote <span class="mono">demo/current/tests/test_refund_processor.py</span> — 5 normal operation tests</li>
+          <li>Applied repair after CF-001 confirmed: UNIQUE constraint on <span class="mono">refund_reference</span> + <span class="mono">INSERT OR IGNORE</span></li>
+          <li>Post-repair: <span class="tag pass">5/5 PASS</span></li>
+        </ul>
+        <div class="muted" style="margin-top:6px">Deliverable: Two synthetic demo apps with reproducible defects, both repaired and passing</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 3 — Investigation &amp; Pattern Extraction</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Failure Signature &amp; History Map</div>
+          <div class="task-owner">Owner: Sughra · Branch: feat/investigation</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <ul>
+          <li>Produced <span class="mono">investigation/failure-signature.json</span> — reusable structural pattern</li>
+          <li>Pattern name: <em>"Unguarded Durable Write on Repeated Logical Operation"</em></li>
+          <li>Documented all 4 required conditions: (1) caller-supplied idempotency key, (2) unconditional write path, (3) no uniqueness enforcement at DB layer, (4) retry scenario possible</li>
+          <li>Produced <span class="mono">investigation/history-map.json</span> — full commit audit chain</li>
+          <li>Mapped commit chain: buggy → regression test FAIL → fix → regression test PASS</li>
+        </ul>
+        <div class="muted" style="margin-top:6px">Deliverable: Reusable failure pattern and historical evidence chain, ready for analysis matching</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 4 — Analysis &amp; Candidate Finding</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">CF-001: Candidate Finding Authored &amp; Confirmed</div>
+          <div class="task-owner">Owner: Abdulwahid · Branch: feat/current-code-analysis</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <div class="finding-box">
+          <div class="label">Finding CF-001 <span class="tag confirmed">CONFIRMED</span></div>
+          <div class="finding-title">Unguarded Durable Write in Refund Processor — Retry Produces Duplicate Refund Record</div>
+          <div class="finding-meta">File: <span class="mono">demo/current/refund_processor.py</span> · Schema lines 43–54 · Write path lines 83–90 · Function sig lines 57–61</div>
+        </div>
+        <ul>
+          <li>Matched all 4 structural conditions from historical failure signature</li>
+          <li>Produced <span class="mono">analysis/candidate-findings.json</span> with structural evidence and proposed behavioral test spec</li>
+          <li>Status promoted: CANDIDATE → CONFIRMED (after verification test passed)</li>
+        </ul>
+        <div class="muted" style="margin-top:6px">Deliverable: Structured candidate finding with full evidence mapping, promoted to confirmed</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 5 — Verification &amp; Behavioral Tests</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Regression Tests Written, Executed, and Verified</div>
+          <div class="task-owner">Owner: Joshua · Branch: feat/refund-verification</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <div class="test-grid">
+          <div class="test-card">
+            <div class="tc-title">Historical Payment Regression</div>
+            <div class="tc-meta"><span class="mono">test_duplicate_operation.py</span></div>
+            <div class="tc-result">Before fix: 1 FAIL · After fix: ✓ PASS</div>
+          </div>
+          <div class="test-card">
+            <div class="tc-title">CF-001 Refund Regression</div>
+            <div class="tc-meta"><span class="mono">test_duplicate_refund.py</span></div>
+            <div class="tc-result">Before repair: 1 FAIL · After repair: ✓ PASS</div>
+          </div>
+        </div>
+        <ul style="margin-top:10px">
+          <li>Tests assert: one logical operation (via idempotency key) → exactly one durable DB record</li>
+          <li>Retry simulation: submit same reference twice, assert row count == 1 (not 2)</li>
+          <li>All results from actual pytest runs — no invented outputs</li>
+          <li>Total after repair: <span class="tag pass">11/11 PASS</span> across both test suites</li>
+        </ul>
+        <div class="muted" style="margin-top:6px">Deliverable: Regression test suite confirming finding before repair and repair effectiveness</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 6 — Dashboard</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Investigation Dashboard (Read-Only, Apple-style)</div>
+          <div class="task-owner">Owner: Senthuran · Branch: feat/claude-dashboard</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <ul>
+          <li>Built <span class="mono">dashboard/index.html</span> — HTML shell with 9 sections</li>
+          <li>Built <span class="mono">dashboard/dashboard.js</span> — report fetcher, section builder, animated components</li>
+          <li>Built <span class="mono">dashboard/style.css</span> — Apple-style theme (large headlines, alternating black/light sections)</li>
+          <li>Built <span class="mono">dashboard/globe.js</span> — hero canvas dot-matrix planet visualization</li>
+          <li>Data source: <span class="mono">artifacts/final-run/report.json</span> (read-only, never modifies report)</li>
+        </ul>
+        <div style="margin-top:8px">
+          <strong style="font-size:12px">9 Dashboard Sections:</strong>
+          <span class="tag complete">Hero</span>
+          <span class="tag complete">How it Works</span>
+          <span class="tag complete">Result</span>
+          <span class="tag complete">Replay</span>
+          <span class="tag complete">Pattern</span>
+          <span class="tag complete">Finding</span>
+          <span class="tag complete">Tests</span>
+          <span class="tag complete">Proof</span>
+          <span class="tag complete">Limits</span>
+        </div>
+        <div class="muted" style="margin-top:6px">Deliverable: Interactive investigation dashboard — read-only, fully local, no authentication</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Task 7 — Final Investigation Report</div>
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-icon">✓</div>
+        <div>
+          <div class="task-title">Structured JSON Report Assembled</div>
+          <div class="task-owner">Branch: feat/final-report</div>
+        </div>
+      </div>
+      <div class="task-detail">
+        <ul>
+          <li>Produced <span class="mono">artifacts/final-run/report.json</span> — 364-line structured report</li>
+          <li>Includes all required fields: <span class="mono">run_id</span>, <span class="mono">analyzed_commit</span>, <span class="mono">timestamp</span>, <span class="mono">pipeline_version</span>, <span class="mono">findings</span>, <span class="mono">evidence</span>, <span class="mono">verification_results</span>, <span class="mono">limitations</span></li>
+          <li>Contains full evidence chain, test results, commit SHAs, and fix diffs</li>
+          <li>Consumed by dashboard for display — never modified by dashboard</li>
+        </ul>
+        <div class="muted" style="margin-top:6px">Deliverable: Authoritative machine-readable investigation report</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Git Commit Audit Trail (Key Commits)</div>
+    <table class="commit-table">
+      <thead>
+        <tr>
+          <th>SHA</th>
+          <th>Description</th>
+          <th>Stage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="sha">setup/*</span></td><td>Project scaffolding, contracts, shared docs</td><td>Foundation</td></tr>
+        <tr><td><span class="sha">1afb53b</span></td><td>Buggy payment processor introduced (no dedup guard)</td><td>Demo</td></tr>
+        <tr><td><span class="sha">f616bcd</span></td><td>Regression test written — FAILS (got 2 records, expected 1)</td><td>Demo / Test</td></tr>
+        <tr><td><span class="sha">5af395a</span></td><td>Fix applied — regression test now PASSES</td><td>Demo / Fix</td></tr>
+        <tr><td><span class="sha">feat/investigation</span></td><td>Failure signature + history map extracted</td><td>Investigation</td></tr>
+        <tr><td><span class="sha">9091734</span></td><td>Current refund scenario introduced (buggy)</td><td>Analysis</td></tr>
+        <tr><td><span class="sha">291d9c9</span></td><td>CF-001 identified as CANDIDATE</td><td>Analysis</td></tr>
+        <tr><td><span class="sha">f5f4597</span></td><td>CF-001 behavioral regression test written — FAILS</td><td>Verification</td></tr>
+        <tr><td><span class="sha">e1ce00f</span></td><td>Refund repair applied — regression test now PASSES, CF-001 CONFIRMED</td><td>Verification / Fix</td></tr>
+        <tr><td><span class="sha">feat/final-report</span></td><td>Final report assembled in artifacts/final-run/</td><td>Report</td></tr>
+        <tr><td><span class="sha">feat/claude-dashboard</span></td><td>Dashboard built and functional</td><td>Dashboard</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">All Files Produced</div>
+    <table class="files-table">
+      <thead>
+        <tr><th>File</th><th>Purpose</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono">workflow/project-brief.md</td><td>Architecture &amp; orchestration brief</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">demo/generator/payment_processor.py</td><td>Historical payment demo (fixed)</td><td><span class="tag fixed">Fixed</span></td></tr>
+        <tr><td class="mono">demo/tests/test_payment_processor.py</td><td>Historical normal tests (4 pass)</td><td><span class="tag pass">4/4 Pass</span></td></tr>
+        <tr><td class="mono">demo/current/refund_processor.py</td><td>Current refund demo (repaired)</td><td><span class="tag fixed">Repaired</span></td></tr>
+        <tr><td class="mono">demo/current/tests/test_refund_processor.py</td><td>Refund normal tests (5 pass)</td><td><span class="tag pass">5/5 Pass</span></td></tr>
+        <tr><td class="mono">investigation/failure-signature.json</td><td>Extracted reusable failure pattern</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">investigation/history-map.json</td><td>Historical commit chain evidence</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">analysis/candidate-findings.json</td><td>CF-001 analysis (confirmed)</td><td><span class="tag confirmed">Confirmed</span></td></tr>
+        <tr><td class="mono">verification/tests/test_duplicate_operation.py</td><td>Historical regression (pass)</td><td><span class="tag pass">Pass</span></td></tr>
+        <tr><td class="mono">verification/tests/test_duplicate_refund.py</td><td>CF-001 regression (pass after repair)</td><td><span class="tag pass">Pass</span></td></tr>
+        <tr><td class="mono">contracts/sample-report.json</td><td>Illustrative report structure</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">artifacts/final-run/report.json</td><td>Final 364-line investigation report</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">dashboard/index.html</td><td>Dashboard HTML shell</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">dashboard/dashboard.js</td><td>Report fetcher &amp; section builder</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">dashboard/style.css</td><td>Apple-style theme</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">dashboard/globe.js</td><td>Hero canvas visualization</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">dashboard/README.md</td><td>Dashboard design documentation</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">README.md</td><td>Project root documentation</td><td><span class="tag complete">Complete</span></td></tr>
+        <tr><td class="mono">SECURITY.MD</td><td>Security guidelines</td><td><span class="tag complete">Complete</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">Critical Constraints Respected</div>
+    <div class="task-card" style="background:#f7f8fa">
+      <ul>
+        <li>✓ All demo data is <strong>synthetic</strong> — no real customer data, PII, or payment credentials</li>
+        <li>✓ No real payment APIs, accounts, or production-like endpoints used anywhere</li>
+        <li>✓ <strong>Candidate → Confirmed</strong> promotion only after behavioral reproduction <em>and</em> passing pytest test</li>
+        <li>✓ All test results from actual pytest runs — no invented outputs</li>
+        <li>✓ Dashboard is read-only — never modifies report data</li>
+        <li>✓ Components isolated: data exchanged only via JSON contract files</li>
+        <li>✓ Used <span class="mono">round(amount * 100)</span> for cent conversion (not <span class="mono">int()</span> truncation)</li>
+        <li>✓ No authentication implemented (by design for prototype scope)</li>
+        <li>✓ No automatic code-fix merging — EchoCode proposes fixes only</li>
+        <li>✓ <span class="mono">memory/</span> left empty — only confirmed findings may be stored here</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">Made with IBM Bob</div>
+</div>
+</body>
+</html>

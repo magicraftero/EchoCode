@@ -271,6 +271,10 @@ function render(r) {
 function buildDock() {
   return `
   <nav class="dock" aria-label="Sections">
+    <a class="dock-item dock-home" href="../" aria-label="EchoCode home page">
+      ${logoMark()}<span class="dock-label">EchoCode</span>
+    </a>
+    <span class="dock-sep" aria-hidden="true"></span>
     ${SECTIONS.map((s, i) => `
       <a class="dock-item" href="#${s.id}" data-target="${s.id}" aria-label="${s.label} (key ${i + 1})">
         ${icon(s.icon)}<span class="dock-label">${s.label}</span>

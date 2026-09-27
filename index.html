@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EchoCode — Turn past defects into future defenses</title>
+  <meta name="description" content="EchoCode turns previously fixed defects into reusable behavioral intelligence, finds related risks in current code, and verifies them with real tests." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@500&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="landing/landing.css" />
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+  <!-- Material icon paths (same set as the dashboard) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" /></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" /></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" /></symbol>
+    <symbol id="i-open" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" /></symbol>
+    <symbol id="i-school" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" /></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></symbol>
+    <symbol id="i-science" viewBox="0 0 24 24"><path d="M19.8 18.4L14 10.67V6.5l1.35-1.69c.26-.33.03-.81-.39-.81H9.04c-.42 0-.65.48-.39.81L10 6.5v4.17L4.2 18.4c-.49.66-.02 1.6.8 1.6h14c.82 0 1.29-.94.8-1.6z" /></symbol>
+    <symbol id="i-verified" viewBox="0 0 24 24"><path d="M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.69 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.6 22.5l3.4-1.47 3.4 1.46 1.89-3.19 3.61-.82-.34-3.69L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z" /></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></symbol>
+    <symbol id="i-error" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" /></symbol>
+    <symbol id="i-commit" viewBox="0 0 24 24"><path d="M16.9 11a5 5 0 0 0-9.8 0H2v2h5.1a5 5 0 0 0 9.8 0H22v-2h-5.1zM12 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" /></symbol>
+    <symbol id="i-dash" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" /></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" /></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" /></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" /></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" /></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></symbol>
+  </svg>
+
+  <!-- ─── Dock (floating icon menu, same as the dashboard) ─────────────── -->
+  <nav class="dock" aria-label="Sections">
+    <a class="dock-item" href="#top" data-target="top" aria-label="Home (key 1)"><svg class="ic"><use href="#i-home" /></svg><span class="dock-label">Home</span></a>
+    <a class="dock-item" href="#how" data-target="how" aria-label="How it works (key 2)"><svg class="ic"><use href="#i-bulb" /></svg><span class="dock-label">How it works</span></a>
+    <a class="dock-item" href="#proof" data-target="proof" aria-label="Proof (key 3)"><svg class="ic"><use href="#i-verified" /></svg><span class="dock-label">Proof</span></a>
+    <a class="dock-item" href="#trail" data-target="trail" aria-label="Evidence (key 4)"><svg class="ic"><use href="#i-history" /></svg><span class="dock-label">Evidence</span></a>
+    <a class="dock-item" href="#explore" data-target="explore" aria-label="Try it (key 5)"><svg class="ic"><use href="#i-play" /></svg><span class="dock-label">Try it</span></a>
+    <a class="dock-item" href="#run" data-target="run" aria-label="Run locally (key 6)"><svg class="ic"><use href="#i-code" /></svg><span class="dock-label">Run locally</span></a>
+    <span class="dock-sep" aria-hidden="true"></span>
+    <a class="dock-item" href="dashboard/" aria-label="Open dashboard"><svg class="ic"><use href="#i-dash" /></svg><span class="dock-label">Dashboard</span></a>
+    <a class="dock-item" href="https://github.com/senthuran2107/EchoCode" target="_blank" rel="noopener" aria-label="GitHub (opens in a new tab)"><svg class="ic"><use href="#i-open" /></svg><span class="dock-label">GitHub</span></a>
+  </nav>
+
+  <!-- ─── Hero (pinned; the sheet slides over it) ─────────────────────── -->
+  <section class="hero" id="top" data-theme="dark">
+    <div class="hero-stage" aria-hidden="true">
+      <div class="rings"><i></i><i></i><i></i><i></i></div>
+      <div class="orb orb-blue" style="--s:520px; left:8%; top:4%"></div>
+      <div class="orb orb-purple" style="--s:440px; right:6%; top:26%; animation-delay:-5s"></div>
+      <div class="orb orb-green" style="--s:320px; left:40%; bottom:-8%; animation-delay:-9s"></div>
+    </div>
+
+    <div class="hero-floats" aria-hidden="true">
+      <span class="float-chip fc-1"><i class="dot-blue"></i>5af395a · learned fix</span>
+      <span class="float-chip fc-2"><i class="dot-yellow"></i>291d9c9 · candidate</span>
+      <span class="float-chip fc-3"><i class="dot-purple"></i>CF-001 · confirmed</span>
+      <span class="float-chip fc-4"><i class="dot-green"></i>e1ce00f · verified</span>
+    </div>
+
+    <div class="hero-inner">
+      <p class="hero-kicker">
+        <span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        EchoCode
+        <span class="sep" aria-hidden="true"></span>
+        <span class="badge tone-green"><span class="badge-dot"></span>CF-001 verified</span>
+      </p>
+      <h1 class="hero-title">
+        <span class="line split">Your Git history already knows where your next bug</span>
+        <span class="line grad-line"><span class="grad">may be hiding.</span></span>
+      </h1>
+      <p class="hero-sub">EchoCode turns previously fixed defects into reusable behavioral intelligence, finds related risks in current code, and verifies them with real tests.</p>
+      <div class="hero-cta">
+        <a class="gbtn gbtn-filled gbtn-lg has-icon-r" href="dashboard/">
+          Explore Live Investigation
+          <svg class="ic"><use href="#i-arrow" /></svg>
+        </a>
+        <a class="gbtn gbtn-tonal gbtn-lg has-icon" href="https://github.com/senthuran2107/EchoCode/archive/refs/tags/v1.0-hackathon.zip" download>
+          <svg class="ic"><use href="#i-download" /></svg>
+          Download v1.0 Hackathon
+        </a>
+        <a class="gbtn gbtn-outlined gbtn-lg has-icon-r" href="https://github.com/senthuran2107/EchoCode" target="_blank" rel="noopener">
+          View on GitHub
+          <svg class="ic"><use href="#i-open" /></svg>
+        </a>
+      </div>
+      <p class="hero-status">Built with IBM Bob 2.0 <span class="dotsep">·</span> Open-source hackathon prototype <span class="dotsep">·</span> <a href="#run">Run locally</a></p>
+    </div>
+
+    <a class="scroll-cue" href="#how" aria-label="Scroll to how it works"><svg class="ic"><use href="#i-down" /></svg></a>
+  </section>
+
+  <main class="sheet">
+
+    <!-- ─── How it works ─────────────────────────────────────────────── -->
+    <section class="sec" id="how" data-theme="light">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow t-blue" data-reveal>How it works</p>
+          <h2 class="sec-title" data-reveal>One fixed bug becomes a pattern.<br /><span class="dim">A pattern becomes a test.</span></h2>
+          <p class="sec-sub" data-reveal>EchoCode reads what your team already fixed, looks for the same behavior in code you ship today, and refuses to call it real until a test proves it.</p>
+        </header>
+
+        <ol class="how-grid">
+          <li class="card how-card tone-blue" data-reveal>
+            <div class="how-top"><span class="icon-bubble"><svg class="ic"><use href="#i-school" /></svg></span><span class="how-n">01</span></div>
+            <h3 class="card-title">Learn</h3>
+            <p class="card-text">Past defect + repair</p>
+          </li>
+          <li class="card how-card tone-yellow" data-reveal>
+            <div class="how-top"><span class="icon-bubble"><svg class="ic"><use href="#i-search" /></svg></span><span class="how-n">02</span></div>
+            <h3 class="card-title">Detect</h3>
+            <p class="card-text">Related behavior in current code</p>
+          </li>
+          <li class="card how-card tone-red" data-reveal>
+            <div class="how-top"><span class="icon-bubble"><svg class="ic"><use href="#i-science" /></svg></span><span class="how-n">03</span></div>
+            <h3 class="card-title">Prove</h3>
+            <p class="card-text">Independent behavioral test</p>
+          </li>
+          <li class="card how-card tone-green" data-reveal>
+            <div class="how-top"><span class="icon-bubble"><svg class="ic"><use href="#i-verified" /></svg></span><span class="how-n">04</span></div>
+            <h3 class="card-title">Verify</h3>
+            <p class="card-text">Same test passes after repair</p>
+          </li>
+        </ol>
+
+        <p class="scrub" aria-label="AI can suggest. Tests decide."><span>AI</span> <span>can</span> <span>suggest.</span> <span>Tests</span> <span>decide.</span></p>
+      </div>
+    </section>
+
+    <!-- ─── Proof ────────────────────────────────────────────────────── -->
+    <section class="sec" id="proof" data-theme="paper">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow t-green" data-reveal>The proof</p>
+          <h2 class="sec-title" data-reveal>One retry. Two refunds.<br /><span class="t-green">Then one.</span></h2>
+          <p class="sec-sub" data-reveal>A refund retried with the same <code>refund_reference</code> should create exactly one durable record.</p>
+        </header>
+
+        <div class="card result-main" data-reveal>
+          <div class="compare">
+            <div class="cmp">
+              <span class="cmp-label"><svg class="ic"><use href="#i-error" /></svg>Before repair</span>
+              <div class="cmp-nums">
+                <span class="cmp-k">Expected</span><span class="cmp-k">Actual</span>
+                <span class="cmp-v">1</span><span class="compare-num">2</span>
+              </div>
+              <div class="dbrows">
+                <div class="dbrow"><span class="mono">REF-RETRY-001</span><b>row 1</b></div>
+                <div class="dbrow dup"><span class="mono">REF-RETRY-001</span><b>duplicate</b></div>
+              </div>
+              <span class="verdict"><span class="badge-dot"></span>FAIL</span>
+            </div>
+
+            <div class="cmp-mid" aria-hidden="true">
+              <span class="cmp-line"></span>
+              <span class="commit-chip"><svg class="ic"><use href="#i-commit" /></svg><span class="mono">e1ce00f</span></span>
+              <span class="cmp-mid-label">the repair</span>
+            </div>
+
+            <div class="cmp cmp-good">
+              <span class="cmp-label"><svg class="ic"><use href="#i-check" /></svg>After repair</span>
+              <div class="cmp-nums">
+                <span class="cmp-k">Expected</span><span class="cmp-k">Actual</span>
+                <span class="cmp-v">1</span><span class="compare-num">1</span>
+              </div>
+              <div class="dbrows">
+                <div class="dbrow"><span class="mono">REF-RETRY-001</span><b>row 1</b></div>
+              </div>
+              <span class="verdict"><span class="badge-dot"></span>PASS</span>
+            </div>
+          </div>
+          <p class="test-id mono">verification/tests/test_duplicate_refund.py::test_retry_with_same_refund_reference_does_not_create_duplicate_record</p>
+        </div>
+
+        <p class="statement" data-reveal>Same test. Same assertion.<br /><span>The code changed — not the goalposts.</span></p>
+      </div>
+    </section>
+
+    <!-- ─── Evidence trail ──────────────────────────────────────────── -->
+    <section class="sec" id="trail" data-theme="dark">
+      <div class="orb orb-blue" style="--s:420px; left:-6%; top:20%" aria-hidden="true"></div>
+      <div class="orb orb-purple" style="--s:380px; right:-4%; bottom:10%; animation-delay:-6s" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow t-purple" data-reveal>The evidence trail</p>
+          <h2 class="sec-title" data-reveal>Every step is a commit.</h2>
+          <p class="sec-sub" data-reveal>From the payment bug the team fixed to the refund bug EchoCode found, reproduced and verified. Nothing is claimed that Git and pytest can’t show you.</p>
+        </header>
+
+        <figure class="card trail" data-reveal aria-label="The CF-001 commit trail">
+          <div class="trail-body">
+            <svg class="echo-arc" aria-hidden="true"><path d="" /></svg>
+
+            <p class="trail-group t-blue">Past · payment_processor.py</p>
+            <ol class="commits">
+              <li class="c tone-blue"><span class="node"></span><code>1afb53b</code><span class="msg">feat: add synthetic duplicate-operation demo</span></li>
+              <li class="c tone-blue"><span class="node"></span><code>f616bcd</code><span class="msg">test: add duplicate-operation regression</span></li>
+              <li class="c tone-blue c-source"><span class="node ring"></span><code>5af395a</code><span class="msg">fix: prevent duplicate payment operations</span><span class="badge">learned</span></li>
+            </ol>
+
+            <p class="trail-group t-yellow">Present · refund_processor.py</p>
+            <ol class="commits">
+              <li class="c tone-gray"><span class="node"></span><code>9091734</code><span class="msg">feat: add current refund processing scenario</span></li>
+              <li class="c tone-yellow c-target"><span class="node ring"></span><code>291d9c9</code><span class="msg">feat: add current-code candidate finding</span><span class="badge">candidate</span></li>
+              <li class="c tone-red"><span class="node"></span><code>f5f4597</code><span class="msg">test: reproduce duplicate refund finding</span><span class="badge">2 ≠ 1</span></li>
+              <li class="c tone-green"><span class="node"></span><code>e1ce00f</code><span class="msg">fix: prevent duplicate refund operations</span><span class="badge">verified</span></li>
+            </ol>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ─── Explore ──────────────────────────────────────────────────── -->
+    <section class="sec" id="explore" data-theme="light">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow t-yellow" data-reveal>Try EchoCode</p>
+          <h2 class="sec-title" data-reveal>See it. Run it. Check it.</h2>
+        </header>
+
+        <div class="explore-grid">
+          <article class="card explore-card tone-purple" data-reveal>
+            <span class="icon-bubble"><svg class="ic"><use href="#i-dash" /></svg></span>
+            <h3 class="card-title">Live Investigation</h3>
+            <p class="card-text">Explore CF-001, the learned pattern, verification evidence, and the complete Git trail.</p>
+            <a class="gbtn gbtn-filled has-icon-r" href="dashboard/">Launch Dashboard <svg class="ic"><use href="#i-arrow" /></svg></a>
+          </article>
+
+          <article class="card explore-card tone-green" data-reveal>
+            <span class="icon-bubble"><svg class="ic"><use href="#i-download" /></svg></span>
+            <h3 class="card-title">Download Source</h3>
+            <p class="card-text">Run the complete EchoCode prototype locally, including the demo, verification tests, investigation artifacts, and dashboard.</p>
+            <a class="gbtn gbtn-tonal has-icon" href="https://github.com/senthuran2107/EchoCode/archive/refs/tags/v1.0-hackathon.zip" download><svg class="ic"><use href="#i-download" /></svg>Download v1.0</a>
+          </article>
+
+          <article class="card explore-card tone-blue" data-reveal>
+            <span class="icon-bubble"><svg class="ic"><use href="#i-code" /></svg></span>
+            <h3 class="card-title">Source &amp; Evidence</h3>
+            <p class="card-text">Inspect the repository, commits, tests, and structured evidence.</p>
+            <a class="gbtn gbtn-outlined has-icon-r" href="https://github.com/senthuran2107/EchoCode" target="_blank" rel="noopener">View GitHub <svg class="ic"><use href="#i-open" /></svg></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Run locally ──────────────────────────────────────────────── -->
+    <section class="sec" id="run" data-theme="paper">
+      <div class="wrap run">
+        <div class="run-copy">
+          <p class="eyebrow t-red" data-reveal>Run locally</p>
+          <h2 class="sec-title" data-reveal>Reproduce the whole investigation on your machine.</h2>
+          <p class="sec-sub" data-reveal>The download is the exact tagged hackathon submission. Everything is synthetic and self-contained: no accounts, no network services, no real payment data.</p>
+          <p class="run-fine" data-reveal>Complete source · demo · verification tests · evidence artifacts</p>
+          <div class="run-cta" data-reveal>
+            <a class="gbtn gbtn-filled has-icon" href="https://github.com/senthuran2107/EchoCode/archive/refs/tags/v1.0-hackathon.zip" download><svg class="ic"><use href="#i-download" /></svg>Download v1.0 Hackathon</a>
+          </div>
+        </div>
+
+        <div class="term" data-reveal role="region" aria-label="Commands to run EchoCode locally">
+          <div class="term-head">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="mono">terminal</span>
+            <button class="gbtn gbtn-text has-icon term-copy" type="button" data-copy="term-cmds"><svg class="ic"><use href="#i-copy" /></svg><span>Copy</span></button>
+          </div>
+<pre class="mono" id="term-cmds"><span class="cm"># unzip EchoCode-1.0-hackathon.zip, then</span>
+cd EchoCode-1.0-hackathon
+pip install pytest
+
+<span class="cm"># the behavioral tests</span>
+pytest verification/tests/
+
+<span class="cm"># the dashboard, at localhost:8080/dashboard/</span>
+python -m http.server 8080</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Footer ───────────────────────────────────────────────────── -->
+    <footer class="foot" data-theme="paper">
+      <div class="wrap foot-inner">
+        <span class="brand">
+          <span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          EchoCode
+        </span>
+        <span class="foot-tag">Turn past defects into future defenses.</span>
+        <nav class="foot-links" aria-label="Footer">
+          <a href="dashboard/">Dashboard</a>
+          <a href="https://github.com/senthuran2107/EchoCode" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/senthuran2107/EchoCode/archive/refs/tags/v1.0-hackathon.zip" download>Download</a>
+        </nav>
+      </div>
+    </footer>
+  </main>
+
+  <script src="landing/landing.js"></script>
+</body>
+</html>
