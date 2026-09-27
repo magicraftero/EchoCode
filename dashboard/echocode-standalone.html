@@ -1,0 +1,3156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <title>EchoCode — AI Code Forensics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@500&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+/* ─── EchoCode Dashboard ───────────────────────────────────────────────
+   Apple-style layout and type (big headlines, generous space, alternating
+   black / light-grey / white sections) with Google's colour system, Material 3
+   buttons and chips. Colour tokens are registered with @property so the whole
+   page morphs smoothly between section themes as you scroll. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── Animatable colour tokens ──────────────────────────────────────── */
+@property --bg        { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --fg        { syntax: '<color>'; inherits: true; initial-value: #f5f5f7; }
+@property --fg2       { syntax: '<color>'; inherits: true; initial-value: #a1a1a6; }
+@property --fg3       { syntax: '<color>'; inherits: true; initial-value: #6e6e73; }
+@property --card      { syntax: '<color>'; inherits: true; initial-value: #161617; }
+@property --card2     { syntax: '<color>'; inherits: true; initial-value: #1d1d1f; }
+@property --hair      { syntax: '<color>'; inherits: true; initial-value: rgba(255,255,255,.1); }
+@property --shadow    { syntax: '<color>'; inherits: true; initial-value: rgba(0,0,0,0); }
+@property --glow      { syntax: '<color>'; inherits: true; initial-value: rgba(138,180,248,.9); }
+@property --dock      { syntax: '<color>'; inherits: true; initial-value: rgba(44,44,48,.55); }
+@property --dock-line { syntax: '<color>'; inherits: true; initial-value: rgba(255,255,255,.14); }
+@property --dock-on   { syntax: '<color>'; inherits: true; initial-value: rgba(255,255,255,.14); }
+@property --btn       { syntax: '<color>'; inherits: true; initial-value: #a8c7fa; }
+@property --on-btn    { syntax: '<color>'; inherits: true; initial-value: #062e6f; }
+@property --tonal     { syntax: '<color>'; inherits: true; initial-value: #0842a0; }
+@property --on-tonal  { syntax: '<color>'; inherits: true; initial-value: #d3e3fd; }
+@property --outline   { syntax: '<color>'; inherits: true; initial-value: #8e918f; }
+@property --link      { syntax: '<color>'; inherits: true; initial-value: #a8c7fa; }
+@property --chip-on   { syntax: '<color>'; inherits: true; initial-value: #004a77; }
+@property --on-chip   { syntax: '<color>'; inherits: true; initial-value: #c2e7ff; }
+@property --t-blue    { syntax: '<color>'; inherits: true; initial-value: #8ab4f8; }
+@property --t-green   { syntax: '<color>'; inherits: true; initial-value: #81c995; }
+@property --t-red     { syntax: '<color>'; inherits: true; initial-value: #f28b82; }
+@property --t-yellow  { syntax: '<color>'; inherits: true; initial-value: #fdd663; }
+@property --t-purple  { syntax: '<color>'; inherits: true; initial-value: #d7aefb; }
+@property --t-gray    { syntax: '<color>'; inherits: true; initial-value: #9aa0a6; }
+@property --b-blue    { syntax: '<color>'; inherits: true; initial-value: rgba(138,180,248,.16); }
+@property --b-green   { syntax: '<color>'; inherits: true; initial-value: rgba(129,201,149,.16); }
+@property --b-red     { syntax: '<color>'; inherits: true; initial-value: rgba(242,139,130,.16); }
+@property --b-yellow  { syntax: '<color>'; inherits: true; initial-value: rgba(253,214,99,.16); }
+@property --b-purple  { syntax: '<color>'; inherits: true; initial-value: rgba(215,174,251,.16); }
+@property --b-gray    { syntax: '<color>'; inherits: true; initial-value: rgba(154,160,166,.16); }
+
+:root {
+  /* dark (default: the page opens on the hero) */
+  --bg: #000; --fg: #f5f5f7; --fg2: #a1a1a6; --fg3: #6e6e73;
+  --card: #161617; --card2: #1d1d1f; --hair: rgba(255,255,255,.1);
+  --shadow: rgba(0,0,0,0); --glow: rgba(138,180,248,.9);
+  --dock: rgba(44,44,48,.55); --dock-line: rgba(255,255,255,.14); --dock-on: rgba(255,255,255,.14);
+  --btn: #a8c7fa; --on-btn: #062e6f; --tonal: #0842a0; --on-tonal: #d3e3fd;
+  --outline: #8e918f; --link: #a8c7fa; --chip-on: #004a77; --on-chip: #c2e7ff;
+  --t-blue: #8ab4f8; --t-green: #81c995; --t-red: #f28b82; --t-yellow: #fdd663; --t-purple: #d7aefb; --t-gray: #9aa0a6;
+  --b-blue: rgba(138,180,248,.16); --b-green: rgba(129,201,149,.16); --b-red: rgba(242,139,130,.16);
+  --b-yellow: rgba(253,214,99,.16); --b-purple: rgba(215,174,251,.16); --b-gray: rgba(154,160,166,.16);
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", system-ui, sans-serif;
+  --gfont: "Google Sans", "Google Sans Text", "Roboto", "Inter", system-ui, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --spring: cubic-bezier(.34,1.56,.64,1);
+  --r-card: 28px;
+
+  transition:
+    --bg .8s var(--ease), --fg .8s var(--ease), --fg2 .8s var(--ease), --fg3 .8s var(--ease),
+    --card .8s var(--ease), --card2 .8s var(--ease), --hair .8s var(--ease), --shadow .8s var(--ease),
+    --glow .8s var(--ease), --dock .8s var(--ease), --dock-line .8s var(--ease), --dock-on .8s var(--ease),
+    --btn .8s var(--ease), --on-btn .8s var(--ease), --tonal .8s var(--ease), --on-tonal .8s var(--ease),
+    --outline .8s var(--ease), --link .8s var(--ease), --chip-on .8s var(--ease), --on-chip .8s var(--ease),
+    --t-blue .8s var(--ease), --t-green .8s var(--ease), --t-red .8s var(--ease), --t-yellow .8s var(--ease),
+    --t-purple .8s var(--ease), --t-gray .8s var(--ease), --b-blue .8s var(--ease), --b-green .8s var(--ease),
+    --b-red .8s var(--ease), --b-yellow .8s var(--ease), --b-purple .8s var(--ease), --b-gray .8s var(--ease);
+}
+
+:root[data-theme="light"], :root[data-theme="paper"] {
+  --bg: #f5f5f7; --fg: #1d1d1f; --fg2: #6e6e73; --fg3: #86868b;
+  --card: #ffffff; --card2: #f5f5f7; --hair: rgba(0,0,0,.08);
+  --shadow: rgba(0,0,0,.08); --glow: rgba(26,115,232,.75);
+  --dock: rgba(255,255,255,.62); --dock-line: rgba(0,0,0,.08); --dock-on: rgba(0,0,0,.07);
+  --btn: #0b57d0; --on-btn: #ffffff; --tonal: #d3e3fd; --on-tonal: #041e49;
+  --outline: #747775; --link: #0b57d0; --chip-on: #c2e7ff; --on-chip: #001d35;
+  --t-blue: #1a73e8; --t-green: #188038; --t-red: #d93025; --t-yellow: #b06000; --t-purple: #9334e6; --t-gray: #5f6368;
+  --b-blue: #e8f0fe; --b-green: #e6f4ea; --b-red: #fce8e6; --b-yellow: #fef7e0; --b-purple: #f3e8fd; --b-gray: #f1f3f4;
+}
+:root[data-theme="paper"] { --bg: #ffffff; --card: #f5f5f7; --card2: #ffffff; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: #4285F4; color: #fff; }
+.mono { font-family: var(--mono); font-size: .92em; letter-spacing: 0; }
+.muted { color: var(--fg2); }
+.small { font-size: 13px; }
+b { font-weight: 600; }
+
+/* tone helpers */
+.t-blue { color: var(--t-blue); } .t-green { color: var(--t-green); } .t-red { color: var(--t-red); }
+.t-yellow { color: var(--t-yellow); } .t-purple { color: var(--t-purple); } .t-gray { color: var(--t-gray); }
+.tone-blue   { --tc: var(--t-blue);   --tb: var(--b-blue); }
+.tone-green  { --tc: var(--t-green);  --tb: var(--b-green); }
+.tone-red    { --tc: var(--t-red);    --tb: var(--b-red); }
+.tone-yellow { --tc: var(--t-yellow); --tb: var(--b-yellow); }
+.tone-purple { --tc: var(--t-purple); --tb: var(--b-purple); }
+.tone-gray   { --tc: var(--t-gray);   --tb: var(--b-gray); }
+
+.ic { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+
+/* ─── Logo mark (Google four-dot) ───────────────────────────────────── */
+.logo-mark { display: inline-grid; grid-template-columns: repeat(2, 7px); gap: 3px; vertical-align: middle; }
+.logo-mark i { width: 7px; height: 7px; border-radius: 50%; display: block; }
+.logo-mark i:nth-child(1) { background: #4285F4; }
+.logo-mark i:nth-child(2) { background: #EA4335; }
+.logo-mark i:nth-child(3) { background: #FBBC04; }
+.logo-mark i:nth-child(4) { background: #34A853; }
+
+/* ─── Boot / loading ────────────────────────────────────────────────── */
+.boot {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #000;
+  color: #f5f5f7;
+  text-align: center;
+  padding: 24px;
+}
+.boot-logo { font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.boot .logo-mark i { animation: bootDot 1.2s var(--ease) infinite; }
+.boot .logo-mark i:nth-child(2) { animation-delay: .15s; }
+.boot .logo-mark i:nth-child(3) { animation-delay: .45s; }
+.boot .logo-mark i:nth-child(4) { animation-delay: .3s; }
+@keyframes bootDot { 0%, 100% { transform: scale(1); } 50% { transform: scale(.4); opacity: .5; } }
+.boot-text { color: #a1a1a6; font-size: 15px; }
+.boot-error { color: #f28b82; font-weight: 600; }
+.boot-help { color: #a1a1a6; font-size: 14px; max-width: 420px; }
+.boot code { font-family: var(--mono); color: #f5f5f7; }
+
+/* ─── Dock (floating translucent icon menu) ─────────────────────────── */
+.dock {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--dock);
+  border: 1px solid var(--dock-line);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 10px 40px -12px rgba(0,0,0,.45);
+  animation: dockIn .9s var(--spring) .2s both;
+}
+@keyframes dockIn { from { opacity: 0; transform: translate(-50%, -24px) scale(.9); } }
+.dock-item {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--fg2);
+  text-decoration: none;
+  font-family: var(--gfont);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color .3s, background-color .3s, padding .45s var(--ease);
+}
+.dock-item .ic { transition: transform .45s var(--spring); }
+.dock-label {
+  display: inline-block;
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  transition: max-width .5s var(--ease), opacity .3s, margin .5s var(--ease);
+}
+.dock-item:hover, .dock-item:focus-visible { color: var(--fg); background: var(--dock-on); padding: 0 16px 0 12px; }
+.dock-item:hover .dock-label, .dock-item:focus-visible .dock-label { max-width: 140px; opacity: 1; margin-left: 8px; }
+.dock-item:hover .ic { transform: scale(1.12); }
+.dock-item.active { color: var(--fg); background: var(--dock-on); }
+.dock-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--link);
+}
+.dock-item:hover::after, .dock-item:focus-visible::after { opacity: 0; }
+.dock-item:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+
+/* ─── Google Material 3 buttons ─────────────────────────────────────── */
+.gbtn {
+  --sl: currentColor;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 20px;
+  border: none;
+  font-family: var(--gfont);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: box-shadow .28s var(--ease), background-color .28s, color .28s, transform .2s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.gbtn .ic { width: 18px; height: 18px; }
+.gbtn.has-icon { padding: 0 24px 0 16px; }
+.gbtn::before {  /* state layer */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sl);
+  opacity: 0;
+  transition: opacity .2s;
+  z-index: -1;
+}
+.gbtn:hover::before { opacity: .08; }
+.gbtn:focus-visible::before, .gbtn:active::before { opacity: .12; }
+.gbtn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.gbtn:active { transform: scale(.98); }
+.gbtn-filled { background: var(--btn); color: var(--on-btn); }
+.gbtn-filled:hover { box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15); }
+.gbtn-tonal { background: var(--tonal); color: var(--on-tonal); }
+.gbtn-tonal:hover { box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15); }
+.gbtn-outlined { background: transparent; color: var(--link); box-shadow: inset 0 0 0 1px var(--outline); }
+.gbtn-text { background: transparent; color: var(--link); padding: 0 12px; }
+.gbtn-text.has-icon { padding: 0 16px 0 12px; }
+.gbtn[aria-expanded="true"] .ic { transform: rotate(180deg); }
+.gbtn .ic { transition: transform .35s var(--ease); }
+
+.icon-btn {
+  position: relative;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--outline);
+  color: var(--fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color .2s, opacity .2s, transform .2s var(--ease);
+}
+.icon-btn:hover { background: var(--dock-on); }
+.icon-btn:active { transform: scale(.94); }
+.icon-btn:disabled { opacity: .3; cursor: default; }
+.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .18;
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple .6s var(--ease) forwards;
+}
+@keyframes ripple { to { transform: scale(1); opacity: 0; } }
+
+/* Material filter chips */
+.fchips { display: flex; gap: 8px; flex-wrap: wrap; }
+.fchip {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--outline);
+  background: transparent;
+  color: var(--fg2);
+  font-family: var(--gfont);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .25s, color .25s, box-shadow .25s, padding .3s var(--ease);
+}
+.fchip .ic { width: 0; height: 18px; opacity: 0; transition: width .3s var(--ease), opacity .2s, margin .3s var(--ease); }
+.fchip em { font-style: normal; margin-left: 8px; opacity: .6; }
+.fchip:hover { background: var(--dock-on); }
+.fchip.on { background: var(--chip-on); color: var(--on-chip); box-shadow: none; padding-left: 8px; }
+.fchip.on .ic { width: 18px; opacity: 1; margin-right: 8px; }
+.fchip:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--tb);
+  color: var(--tc);
+  font-family: var(--gfont);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  white-space: nowrap;
+  width: fit-content;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 currentColor; } 50% { box-shadow: 0 0 0 4px transparent; opacity: .6; } }
+
+/* ─── Hero (pinned; the sheet slides over it) ───────────────────────── */
+.hero {
+  --p: 0;
+  --btn: #a8c7fa; --on-btn: #062e6f; --outline: #8e918f; --link: #a8c7fa;
+  --t-green: #81c995; --b-green: rgba(129,201,149,.16);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+  background: #000;
+  color: #f5f5f7;
+  z-index: 0;
+}
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  transform: translateY(calc(var(--p) * -60px)) scale(calc(1 + var(--p) * .08));
+  opacity: calc(1 - var(--p) * .7);
+  animation: globeRise 1.6s var(--ease) .1s both;
+}
+@keyframes globeRise { from { opacity: 0; transform: translateY(120px) scale(.94); } }
+.hero-globe { width: 100%; height: 100%; display: block; }
+.hero::after {  /* dims as the sheet covers it */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: calc(var(--p) * .7);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: clamp(96px, 14vh, 150px) 24px 0;
+  max-width: 980px;
+  margin: 0 auto;
+  transform: translateY(calc(var(--p) * -140px));
+  opacity: calc(1 - var(--p) * 1.6);
+}
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  animation: rise .9s var(--ease) both;
+}
+.hero-kicker .sep { width: 1px; height: 14px; background: rgba(255,255,255,.25); }
+.hero-kicker .muted { color: #a1a1a6; font-weight: 500; }
+.hero-title {
+  font-size: clamp(42px, 6.4vw, 88px);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: 1.02;
+  margin-bottom: 20px;
+}
+.hero-title .line { display: block; }
+.hero-title .w {
+  display: inline-block;
+  animation: wordIn 1s var(--ease) both;
+  animation-delay: calc(var(--i) * 90ms + 150ms);
+}
+.grad-line { animation: wordIn 1.1s var(--ease) .5s both; }
+.grad {
+  background: linear-gradient(90deg, #4285F4 0%, #A142F4 30%, #EA4335 60%, #FBBC04 85%, #4285F4 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradShift 8s linear infinite;
+}
+@keyframes gradShift { to { background-position: -200% 0; } }
+@keyframes wordIn { from { opacity: 0; transform: translateY(.45em); filter: blur(12px); } }
+@keyframes rise { from { opacity: 0; transform: translateY(20px); } }
+.hero-sub {
+  font-size: clamp(17px, 1.6vw, 21px);
+  color: #a1a1a6;
+  max-width: 760px;
+  margin: 0 auto 28px;
+  animation: rise 1s var(--ease) .75s both;
+}
+.hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; animation: rise 1s var(--ease) .9s both; }
+.hero-status {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 22px;
+  font-size: 13px;
+  color: #a1a1a6;
+  animation: rise 1s var(--ease) 1.05s both;
+}
+
+.hero-floats { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: calc(1 - var(--p) * 1.4); }
+.float-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(28,28,30,.6);
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #d2d2d7;
+  animation: floatY 7s ease-in-out infinite, rise 1.2s var(--ease) 1.2s both;
+}
+.float-chip i { width: 8px; height: 8px; border-radius: 50%; }
+.dot-blue { background: #4285F4; } .dot-green { background: #34A853; } .dot-yellow { background: #FBBC04; } .dot-purple { background: #A142F4; }
+.fc-1 { left: 7%;  top: 62%; animation-delay: 0s, 1.2s; }
+.fc-2 { left: 14%; top: 80%; animation-delay: -2s, 1.35s; }
+.fc-3 { right: 8%; top: 64%; animation-delay: -4s, 1.5s; }
+.fc-4 { right: 13%; top: 82%; animation-delay: -1s, 1.65s; }
+@keyframes floatY { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
+
+.scroll-cue {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5f5f7;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(10px);
+  opacity: calc(1 - var(--p) * 3);
+  animation: bob 2.4s ease-in-out infinite;
+  transition: background .2s;
+}
+.scroll-cue:hover { background: rgba(255,255,255,.16); }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 6px; } }
+
+/* ─── Sheet: content slides over the pinned hero ────────────────────── */
+.sheet {
+  position: relative;
+  z-index: 2;
+  background: var(--bg);
+  border-radius: 48px 48px 0 0;
+  box-shadow: 0 -30px 80px rgba(0,0,0,.55);
+}
+.sec { position: relative; padding: clamp(96px, 13vh, 150px) 0; overflow-x: clip; overflow-y: visible; }
+.wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+.orb {
+  position: absolute;
+  z-index: 0;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .35;
+  pointer-events: none;
+  animation: orbFloat 14s ease-in-out infinite;
+}
+.orb-blue { background: #4285F4; } .orb-red { background: #EA4335; } .orb-yellow { background: #FBBC04; }
+.orb-green { background: #34A853; } .orb-purple { background: #A142F4; }
+:root[data-theme="light"] .orb, :root[data-theme="paper"] .orb { opacity: .16; }
+@keyframes orbFloat { 0%, 100% { translate: 0 0; scale: 1; } 33% { translate: 30px -24px; scale: 1.08; } 66% { translate: -20px 18px; scale: .95; } }
+
+/* Section heads */
+.sec-head { text-align: center; max-width: 820px; margin: 0 auto 56px; }
+.eyebrow { font-size: 19px; font-weight: 600; margin-bottom: 10px; letter-spacing: -.01em; }
+.sec-title {
+  font-size: clamp(40px, 5.6vw, 72px);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: 1.04;
+  margin-bottom: 18px;
+}
+.sec-sub { font-size: clamp(17px, 1.6vw, 21px); color: var(--fg2); line-height: 1.42; max-width: 680px; margin: 0 auto; }
+.eyebrow-sm { font-family: var(--gfont); font-size: 13px; font-weight: 500; color: var(--fg2); letter-spacing: .1px; }
+
+/* ─── Cards: rounded, lit by the cursor ─────────────────────────────── */
+.card {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--r-card);
+  background: var(--card);
+  padding: 32px;
+  box-shadow: 0 2px 6px var(--shadow), 0 16px 40px -12px var(--shadow);
+  transition: transform .6s var(--ease), box-shadow .6s var(--ease), background-color .8s var(--ease);
+}
+.card::before {  /* cursor-lit border */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .4s;
+  pointer-events: none;
+  z-index: 2;
+}
+.card::after {  /* soft interior light */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--glow) 14%, transparent), transparent 60%);
+  opacity: 0;
+  transition: opacity .4s;
+  pointer-events: none;
+  z-index: -1;
+}
+.card:hover::before, .card:hover::after { opacity: 1; }
+.card:hover { transform: translateY(-6px); box-shadow: 0 4px 10px var(--shadow), 0 30px 60px -18px var(--shadow); }
+.card.tilt:hover { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px); transition: transform .15s linear, box-shadow .6s var(--ease); }
+.card-title { font-size: 24px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 10px; }
+.card-text { color: var(--fg2); font-size: 16px; line-height: 1.5; }
+.card-text b { color: var(--fg); }
+
+.icon-bubble {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tb);
+  color: var(--tc);
+  transition: transform .5s var(--spring);
+}
+.icon-bubble .ic { width: 26px; height: 26px; }
+.icon-bubble.sm { width: 40px; height: 40px; border-radius: 12px; }
+.icon-bubble.sm .ic { width: 20px; height: 20px; }
+.card:hover .icon-bubble { transform: scale(1.1) rotate(-6deg); }
+
+/* ─── Reveal on scroll ──────────────────────────────────────────────── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(48px) scale(.97);
+  filter: blur(10px);
+  transition: opacity 1s var(--ease) var(--d, 0ms), transform 1s var(--ease) var(--d, 0ms), filter 1s var(--ease) var(--d, 0ms);
+}
+[data-reveal].in { opacity: 1; transform: none; filter: blur(0); }
+
+/* ─── How it works ──────────────────────────────────────────────────── */
+.scrub {
+  max-width: 900px;
+  margin: -16px auto 64px;
+  text-align: center;
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+  line-height: 1.22;
+}
+.scrub span { color: var(--fg3); opacity: .45; transition: color .5s var(--ease), opacity .5s var(--ease); }
+.scrub span.lit { color: var(--fg); opacity: 1; }
+.how-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.how-card { display: flex; flex-direction: column; gap: 6px; min-height: 360px; }
+.how-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+.how-n { font-size: 56px; font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--hair); transition: color .5s; }
+.how-card:hover .how-n { color: var(--fg3); }
+.how-fact { margin-top: auto; padding-top: 20px; font-family: var(--gfont); font-size: 14px; font-weight: 500; }
+
+/* ─── Result ────────────────────────────────────────────────────────── */
+.result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.result-main {
+  grid-column: 1 / -1;
+  padding: 48px clamp(24px, 5vw, 64px) 44px;
+  text-align: center;
+  overflow: hidden;
+}
+.result-main:hover { transform: translateY(-4px); }
+.rm-top { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+.rm-title { font-size: clamp(22px, 2.4vw, 30px); font-weight: 600; letter-spacing: -.02em; line-height: 1.2; max-width: 760px; margin: 0 auto; }
+.rm-q { font-size: 17px; color: var(--fg2); margin-top: 10px; }
+
+.compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr);
+  align-items: stretch;
+  max-width: 900px;
+  margin: 40px auto 32px;
+}
+.cmp {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  --c: var(--t-red);
+  background: var(--b-red);
+}
+.cmp-good { --c: var(--t-green); background: var(--b-green); }
+.cmp::before {  /* soft glow behind the number */
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 38%;
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 28%, transparent), transparent 70%);
+  animation: breathe 4s ease-in-out infinite;
+}
+.cmp-good::before { animation-delay: -2s; }
+@keyframes breathe { 0%, 100% { scale: .9; opacity: .7; } 50% { scale: 1.1; opacity: 1; } }
+.cmp-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--gfont); font-size: 14px; font-weight: 500; color: var(--c); }
+.cmp-label .ic { width: 18px; height: 18px; }
+.compare-num {
+  font-size: clamp(96px, 12vw, 160px);
+  font-weight: 700;
+  letter-spacing: -.06em;
+  line-height: 1;
+  margin: 8px 0 2px;
+  color: var(--c);
+  font-variant-numeric: tabular-nums;
+}
+.cmp-unit { font-size: 15px; color: var(--fg2); margin-bottom: 20px; }
+
+.dbrows { width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 8px; min-height: 84px; justify-content: flex-start; }
+.dbrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 4px 14px -8px var(--shadow);
+  font-size: 13px;
+}
+.dbrow .mono { font-size: 12px; color: var(--fg2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbrow b { font-family: var(--gfont); font-weight: 500; font-size: 12px; color: var(--t-green); }
+.dbrow.dup { box-shadow: inset 0 0 0 1.5px var(--t-red); }
+.dbrow.dup b { color: var(--t-red); }
+.in .dbrow { animation: rowIn .6s var(--spring) both; animation-delay: calc(var(--i) * 260ms + 500ms); }
+.in .dbrow.dup { animation: rowIn .6s var(--spring) both, shake .4s ease 2; animation-delay: calc(var(--i) * 260ms + 500ms), calc(var(--i) * 260ms + 1100ms); }
+
+.cmp-mid { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.cmp-line {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  margin-top: -18px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--t-red), var(--t-green));
+  opacity: .5;
+}
+.compare-arrow {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card2);
+  color: var(--fg);
+  box-shadow: 0 10px 30px -10px var(--shadow), 0 0 0 6px var(--card);
+  animation: nudge 2.4s ease-in-out infinite;
+}
+.compare-arrow .ic { width: 28px; height: 28px; }
+@keyframes nudge { 0%, 100% { translate: 0 0; } 50% { translate: 6px 0; } }
+.cmp-fix { display: inline-flex; align-items: center; gap: 6px; font-family: var(--gfont); font-size: 12px; font-weight: 500; color: var(--fg2); }
+.cmp-fix .ic { width: 14px; height: 14px; }
+.rm-foot { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.soft-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px 0 10px;
+  border-radius: 8px;
+  background: var(--card2);
+  font-family: var(--gfont);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg2);
+}
+.soft-chip .ic { width: 16px; height: 16px; color: var(--t-green); }
+.tile { display: flex; flex-direction: column; gap: 10px; }
+.tile-label { font-size: 15px; font-weight: 600; color: var(--fg2); }
+.tile-num { font-size: 48px; font-weight: 700; letter-spacing: -.04em; line-height: 1; }
+.tile-num span { font-size: 17px; font-weight: 500; letter-spacing: -.01em; color: var(--fg3); }
+
+.testbar-cells { display: flex; gap: 4px; margin-bottom: 8px; }
+.testbar-cells i {
+  flex: 1;
+  max-width: 30px;
+  height: 10px;
+  border-radius: 999px;
+  display: block;
+}
+.in .testbar-cells i { animation: cellIn .6s var(--spring) both; animation-delay: calc(var(--i) * 70ms + 300ms); }
+.tb-pass { background: #34A853; }
+.tb-fail { background: #EA4335; }
+@keyframes cellIn { from { transform: scaleX(0); opacity: 0; } }
+.testbar-label { font-family: var(--gfont); font-size: 13px; font-weight: 500; color: var(--fg3); }
+.chain-dots { display: flex; gap: 5px; flex-wrap: wrap; }
+.chain-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--tc); display: block; transition: transform .3s var(--spring); }
+.chain-dot:hover { transform: scale(1.5); }
+
+/* ─── Replay ────────────────────────────────────────────────────────── */
+.flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.flow-node { padding: 20px; border-radius: 22px; display: flex; flex-direction: column; gap: 6px; }
+.flow-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.flow-n { font-size: 13px; font-weight: 600; color: var(--fg3); }
+.flow-label { font-family: var(--gfont); font-size: 12px; font-weight: 500; }
+.flow-title { font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.25; }
+.flow-detail { font-size: 13px; color: var(--fg2); line-height: 1.4; margin-bottom: 6px; flex: 1; }
+.flow.playing .flow-node { transition: opacity .6s var(--ease), transform .6s var(--ease), box-shadow .6s var(--ease); }
+.flow.playing .flow-node:not(.lit) { opacity: .3; transform: scale(.97); }
+.flow.playing .flow-node.now { box-shadow: 0 0 0 2px var(--t-blue), 0 20px 50px -10px color-mix(in srgb, var(--t-blue) 50%, transparent); transform: translateY(-6px); }
+
+.console { padding: 0; overflow: hidden; }
+.console:hover { transform: none; }
+.console-head { display: flex; align-items: center; gap: 14px; padding: 16px 20px; flex-wrap: wrap; }
+.console-title { font-weight: 600; font-size: 16px; display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+.console-title .mono { font-size: 12px; font-weight: 400; }
+.console-ctrl { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.console-ctrl .gbtn { height: 36px; }
+
+.stepper { position: relative; display: flex; justify-content: space-between; padding: 8px 32px 20px; }
+.stepper-rail { position: absolute; left: 48px; right: 48px; top: 25px; height: 2px; background: var(--hair); border-radius: 2px; }
+.stepper-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #4285F4, #A142F4, #34A853);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform .25s linear;
+}
+.stp {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--card2);
+  box-shadow: inset 0 0 0 1.5px var(--hair);
+  color: var(--fg3);
+  font-family: var(--gfont);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .35s, color .35s, box-shadow .35s, transform .35s var(--spring);
+}
+.stp:hover { transform: scale(1.12); color: var(--fg); }
+.stp.done { background: var(--btn); color: var(--on-btn); box-shadow: none; }
+.stp.now { box-shadow: 0 0 0 4px color-mix(in srgb, var(--btn) 35%, transparent); color: var(--fg); transform: scale(1.12); }
+.stp:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+.console-body {
+  height: 340px;
+  overflow-y: auto;
+  padding: 4px 28px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hair) transparent;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24px);
+}
+.cl { padding: 14px 0; border-bottom: 1px solid var(--hair); animation: clIn .5s var(--ease) both; }
+@keyframes clIn { from { opacity: 0; transform: translateY(12px); } }
+.cl-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; font-size: 15px; }
+.cl-step { font-family: var(--gfont); font-weight: 500; font-size: 13px; color: var(--fg3); min-width: 22px; }
+.cl-text { color: var(--fg2); font-size: 15px; line-height: 1.55; padding-left: 32px; }
+.cl-text.typing::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -2px;
+  background: var(--t-blue);
+  animation: caret 1s steps(1) infinite;
+}
+@keyframes caret { 50% { opacity: 0; } }
+.cl-end { display: flex; align-items: center; gap: 8px; padding-top: 16px; color: var(--t-green); font-size: 14px; font-weight: 500; }
+
+/* ─── Pattern ───────────────────────────────────────────────────────── */
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) 160px minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 20px; }
+.case .eyebrow-sm { margin-bottom: 8px; }
+.case .card-title { margin-bottom: 20px; }
+.fact { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--hair); font-size: 15px; }
+.fact-k { color: var(--fg2); }
+.fact-v { font-weight: 500; text-align: right; }
+
+.echo-link { position: relative; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.echo-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  right: -12px;
+  height: 2px;
+  margin-top: -14px;
+  background: linear-gradient(90deg, #4285F4, #A142F4);
+  background-size: 200% 100%;
+  animation: flowLine 2s linear infinite;
+  border-radius: 2px;
+  opacity: .6;
+}
+@keyframes flowLine { to { background-position: -200% 0; } }
+.echo-core {
+  position: relative;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4285F4, #A142F4);
+  color: #fff;
+  box-shadow: 0 10px 30px -6px rgba(161,66,244,.55);
+}
+.echo-core .ic { width: 28px; height: 28px; }
+.echo-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  margin: -46px 0 0 -32px;
+  border-radius: 50%;
+  border: 2px solid #A142F4;
+  animation: echo 2.6s var(--ease) infinite;
+}
+.echo-ring:nth-child(2) { animation-delay: 1.3s; }
+@keyframes echo { from { transform: scale(1); opacity: .7; } to { transform: scale(2.4); opacity: 0; } }
+.echo-label { position: relative; z-index: 1; font-family: var(--gfont); font-size: 12px; font-weight: 500; color: var(--fg2); }
+
+.pattern-card { text-align: center; padding: 48px clamp(24px, 6vw, 80px); margin-bottom: 56px; }
+.pattern-card .eyebrow-sm { margin-bottom: 12px; }
+.pattern-name {
+  font-size: clamp(26px, 3.4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1.12;
+  margin-bottom: 16px;
+  background: linear-gradient(90deg, #4285F4, #A142F4, #EA4335);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.pattern-card .card-text { max-width: 760px; margin: 0 auto 24px; }
+.assist-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.assist-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 16px 0 8px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--outline);
+  font-family: var(--gfont);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+  cursor: help;
+  transition: background-color .2s, transform .3s var(--spring);
+}
+.assist-chip .ic { width: 18px; height: 18px; color: var(--t-green); }
+.assist-chip:hover { background: var(--dock-on); transform: translateY(-2px); }
+
+.reach-head { text-align: center; margin-bottom: 24px; }
+.reach-title { font-size: 28px; font-weight: 600; letter-spacing: -.02em; margin-bottom: 6px; }
+.reach-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.reach-cell {
+  border-radius: 20px;
+  padding: 18px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--hair);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 150px;
+  transition: transform .4s var(--spring), background-color .3s;
+}
+.reach-cell:hover { transform: translateY(-4px); background: var(--card); }
+.reach-domain { font-size: 15px; font-weight: 600; }
+.reach-effect { font-size: 13px; color: var(--fg2); flex: 1; line-height: 1.4; }
+.reach-state { display: flex; align-items: center; gap: 6px; font-family: var(--gfont); font-size: 12px; font-weight: 500; color: var(--fg3); }
+.reach-state .ic { width: 16px; height: 16px; }
+.reach-cell.hit { background: var(--card); box-shadow: inset 0 0 0 2px var(--t-blue), 0 12px 30px -12px var(--shadow); }
+.reach-cell.hit .reach-state { color: var(--t-blue); }
+
+/* ─── Finding ───────────────────────────────────────────────────────── */
+.finding { padding: 40px; }
+.finding:hover { transform: none; }
+.finding-head { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
+.id-chip {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: var(--b-purple);
+  color: var(--t-purple);
+}
+.finding-info { flex: 1; min-width: 240px; }
+.finding-info .card-title { margin-bottom: 4px; }
+
+.life { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 16px; margin-bottom: 40px; }
+.life-rail { position: absolute; top: 17px; left: 17px; right: calc(100% / var(--n) - 17px); height: 3px; border-radius: 3px; background: var(--hair); }
+.life-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--t-yellow), var(--t-purple), var(--t-green));
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1.6s var(--ease) .3s;
+}
+.finding:not([data-reveal]) .life-fill, .finding.in .life-fill { transform: scaleX(1); }
+.life-step { position: relative; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.life-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tc);
+  color: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 6px var(--card);
+}
+.finding.in .life-dot { animation: popIn .6s var(--spring) both; animation-delay: calc(var(--i) * 350ms + 400ms); }
+.life-dot .ic { width: 20px; height: 20px; }
+@keyframes popIn { from { transform: scale(0); } }
+.life-meta { font-size: 13px; color: var(--fg3); }
+.life-note { font-size: 14px; color: var(--fg2); line-height: 1.45; }
+
+.codemap { padding: 28px; border-radius: 22px; background: var(--card2); margin-bottom: 16px; }
+.codemap-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 36px; }
+.codemap-track {
+  position: relative;
+  height: 44px;
+  border-radius: 12px;
+  background: repeating-linear-gradient(90deg, var(--hair) 0 2px, transparent 2px 7px);
+}
+.cm-region {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tc) 28%, transparent);
+  box-shadow: inset 0 0 0 2px var(--tc);
+  min-width: 10px;
+  transition: transform .35s var(--spring), box-shadow .3s;
+  cursor: default;
+}
+.cm-region b {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--gfont);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tc);
+  white-space: nowrap;
+}
+.cm-region.hl { transform: scaleY(1.2); box-shadow: inset 0 0 0 2px var(--tc), 0 0 24px color-mix(in srgb, var(--tc) 60%, transparent); }
+.codemap-scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--fg3); margin: 8px 0 24px; }
+.cm-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cm-item { padding: 16px; border-radius: 16px; background: var(--card); transition: transform .35s var(--spring), box-shadow .3s; }
+.cm-item.hl { transform: translateY(-4px); box-shadow: 0 12px 30px -12px var(--shadow), inset 0 0 0 1.5px var(--hair); }
+.cm-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 15px; }
+.cm-top .mono { margin-left: auto; font-size: 12px; }
+.cm-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tc); }
+.cm-issue { font-size: 14px; color: var(--fg2); line-height: 1.45; }
+
+.expand-row { display: flex; justify-content: flex-start; margin-top: 8px; }
+.expand-row.center { justify-content: center; margin-top: 40px; }
+.expander { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s var(--ease); }
+.expander.open { grid-template-rows: 1fr; }
+.expander-inner { overflow: hidden; min-height: 0; }
+.expander.open .expander-inner > * { animation: rise .6s var(--ease) both; }
+#reasoning .expander-inner > .card-text { padding-top: 16px; margin-bottom: 20px; }
+.mc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mc { padding: 18px; border-radius: 18px; background: var(--card2); display: flex; flex-direction: column; gap: 10px; }
+.mc-id { font-family: var(--gfont); font-size: 12px; font-weight: 500; color: var(--t-purple); }
+.mc-hist, .mc-cur { font-size: 14px; color: var(--fg2); line-height: 1.45; }
+.mc-hist span, .mc-cur span { display: block; font-size: 12px; font-weight: 600; color: var(--fg); margin-bottom: 2px; }
+
+/* ─── Tests ─────────────────────────────────────────────────────────── */
+.test-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.test-card { display: flex; flex-direction: column; gap: 20px; }
+.tc-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.tc-status { display: flex; align-items: center; gap: 10px; font-size: 32px; font-weight: 700; letter-spacing: -.03em; margin-top: 4px; }
+.tc-status .ic { width: 30px; height: 30px; }
+.tc-head .testbar { min-width: 160px; }
+.tc-rows { display: flex; flex-direction: column; }
+.tc-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hair); font-size: 15px; color: var(--fg2); }
+.tc-row b { font-weight: 600; }
+
+.sim { padding: 20px; border-radius: 22px; background: var(--card2); }
+.sim-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.sim-head .gbtn { height: 32px; margin-right: -8px; }
+.sim-calls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.sim-call {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  opacity: .45;
+  transform: translateX(-6px);
+  transition: opacity .4s var(--ease), transform .5s var(--spring), box-shadow .4s;
+}
+.sim-call.active { opacity: 1; transform: none; box-shadow: 0 6px 20px -10px var(--shadow); }
+.sim-call code { font-family: var(--mono); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-n { width: 24px; height: 24px; border-radius: 50%; background: var(--card2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--fg2); transition: background .3s, color .3s; }
+.sim-call.active .sim-n { background: var(--btn); color: var(--on-btn); }
+.sim-res { display: inline-flex; align-items: center; gap: 6px; font-family: var(--gfont); font-size: 13px; font-weight: 500; white-space: nowrap; animation: rise .4s var(--ease) both; }
+.sim-res:empty { animation: none; }
+.sim-res .ic { width: 16px; height: 16px; }
+
+.sim-table { position: relative; border-radius: 16px; background: var(--card); overflow: hidden; }
+.sim-tr { display: grid; grid-template-columns: 52px minmax(0, 1fr) 96px; gap: 10px; padding: 10px 16px; font-size: 14px; border-top: 1px solid var(--hair); }
+.sim-tr span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-th { border-top: none; font-family: var(--gfont); font-size: 12px; font-weight: 500; color: var(--fg3); }
+.sim-rows { min-height: 84px; }
+.sim-tr.ok span:last-child { color: var(--t-green); font-weight: 600; }
+.sim-tr.dup { background: var(--b-red); color: var(--t-red); }
+.sim-tr.dup span:last-child { font-weight: 700; }
+.sim-tr.enter { animation: rowIn .6s var(--spring) both; }
+.sim-tr.dup.enter { animation: rowIn .6s var(--spring) both, shake .4s ease .6s 2; }
+@keyframes rowIn { from { opacity: 0; transform: translateY(-12px) scale(.96); } }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.sim-table.shield::after {
+  content: 'UNIQUE(refund_reference) blocked the duplicate';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 10px;
+  font-family: var(--gfont);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t-blue);
+  box-shadow: inset 0 0 0 2px var(--t-blue), inset 0 0 40px color-mix(in srgb, var(--t-blue) 30%, transparent);
+  animation: shield 1.8s var(--ease) both;
+  pointer-events: none;
+}
+@keyframes shield { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
+.sim-foot { display: flex; gap: 24px; margin-top: 14px; font-size: 14px; color: var(--fg2); }
+.sim-foot b { font-size: 28px; font-weight: 700; letter-spacing: -.03em; margin-left: 6px; color: var(--fg); vertical-align: -3px; }
+.sim-foot b.t-red { color: var(--t-red); }
+.sim-foot b.t-green { color: var(--t-green); }
+
+.assert { padding: 16px 18px; border-radius: 18px; background: var(--b-red); }
+.assert.ok { background: var(--b-green); }
+.assert .eyebrow-sm { margin-bottom: 6px; }
+.assert .mono { font-size: 13px; line-height: 1.55; color: var(--fg); }
+
+/* ─── Proof ─────────────────────────────────────────────────────────── */
+.proof-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.carousel-nav { display: flex; gap: 8px; }
+.hs-meter { flex: 1; max-width: 280px; height: 4px; border-radius: 4px; background: var(--hair); overflow: hidden; margin-left: auto; }
+.hs-meter i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4285F4, #A142F4, #34A853); transform-origin: left; transform: scaleX(0); }
+.hs { position: relative; }
+.hs.pinned .hs-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-x: clip;
+}
+.hs.pinned .hs-sticky > .wrap { width: 100%; }
+.hs.pinned .track { overflow: visible; scroll-snap-type: none; will-change: transform; }
+.hs.pinned .commit { transition: transform .6s var(--ease), box-shadow .6s var(--ease), background-color .8s var(--ease); }
+.carousel { position: relative; z-index: 1; }
+.track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 12px max(24px, calc((100vw - 1180px) / 2 + 24px)) 36px;
+  scroll-padding: 0 max(24px, calc((100vw - 1180px) / 2 + 24px));
+  scrollbar-width: none;
+}
+.track::-webkit-scrollbar { display: none; }
+.commit {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 240px;
+  padding: 26px;
+  overflow: hidden;
+}
+.commit::after { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%); }
+.commit .commit-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 26px;
+  right: 26px;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  background: var(--accent);
+}
+.commit-top { display: flex; justify-content: space-between; align-items: baseline; }
+.commit-n { font-size: 40px; font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--hair); transition: color .4s; }
+.commit:hover .commit-n { color: var(--accent); }
+.commit-msg { font-family: var(--mono); font-size: 14px; line-height: 1.45; flex: 1; }
+.commit-meta { font-size: 13px; color: var(--fg2); }
+.commit.gone { display: none; }
+.commit.pop { animation: rise .6s var(--ease) var(--d, 0ms) both; }
+
+.chain-grid { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 28px; }
+.chain-card { padding: 24px; }
+.chain-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.chain-n { font-size: 28px; font-weight: 700; letter-spacing: -.03em; color: var(--fg3); }
+.chain-title { font-size: 18px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 6px; }
+
+/* ─── Limits ────────────────────────────────────────────────────────── */
+.limit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.limit { padding: 24px; display: flex; flex-direction: column; gap: 10px; border-radius: 24px; }
+.limit-title { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+
+/* ─── Footer ────────────────────────────────────────────────────────── */
+.foot { position: relative; z-index: 1; text-align: center; padding: 40px 24px 64px; color: var(--fg3); font-size: 13px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.foot-logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; color: var(--fg); margin-bottom: 4px; }
+.foot-note { font-size: 12px; }
+
+/* ─── Reduced motion ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  :root { transition: none; }
+  .hero-stage, .hero-inner, .hero-floats { transform: none !important; opacity: 1 !important; }
+  .life-fill { transform: scaleX(1); }
+  .scrub span { color: var(--fg); opacity: 1; }
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .how-grid { grid-template-columns: minmax(0, 1fr); }
+  .how-card { min-height: 0; }
+  .result-grid { grid-template-columns: minmax(0, 1fr); }
+  .pair { grid-template-columns: minmax(0, 1fr); }
+  .echo-link { height: 110px; }
+  .echo-link::before { display: none; }
+  .cm-list { grid-template-columns: minmax(0, 1fr); }
+  .test-pair { grid-template-columns: minmax(0, 1fr); }
+  .fc-1, .fc-3 { display: none; }
+}
+@media (max-width: 720px) {
+  body { font-size: 16px; }
+  .dock { top: auto; bottom: 14px; gap: 0; padding: 5px; }
+  .dock-item { height: 38px; padding: 0 8px; }
+  .dock-item:hover, .dock-item:focus-visible { padding: 0 8px; }
+  .dock-item:hover .dock-label, .dock-item:focus-visible .dock-label { max-width: 0; opacity: 0; margin: 0; }
+  .dock-item .ic { width: 18px; height: 18px; }
+  .hero-inner { padding-top: 72px; }
+  .float-chip, .scroll-cue { display: none; }
+  .sheet { border-radius: 32px 32px 0 0; }
+  .card { padding: 24px; border-radius: 24px; }
+  .result-main, .finding { padding: 24px; }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stepper { padding: 8px 12px 16px; }
+  .stepper-rail { left: 24px; right: 24px; top: 21px; }
+  .stp { width: 26px; height: 26px; font-size: 11px; }
+  .console-body { padding: 4px 18px 22px; height: 380px; }
+  .cl-text { padding-left: 0; }
+  .life { grid-template-columns: minmax(0, 1fr); }
+  .life-rail { display: none; }
+  .mc-grid, .chain-grid { grid-template-columns: minmax(0, 1fr); }
+  .sim-tr { grid-template-columns: 38px minmax(0, 1fr) 80px; }
+  .compare { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .cmp-mid { flex-direction: row; }
+  .cmp-line { display: none; }
+  .compare-arrow { width: 48px; height: 48px; rotate: 90deg; }
+  .commit { flex-basis: 260px; }
+  .foot { padding-bottom: 96px; }
+}
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="boot">
+      <div class="boot-logo"><span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>EchoCode</div>
+      <div class="boot-text">Loading investigation report…</div>
+    </div>
+  </div>
+  <script>
+/* EchoCode Dashboard — hero globe.
+   A dot-matrix planet drawn on a 2D canvas: Fibonacci-distributed points,
+   brighter on procedural "land", soft rim light and atmosphere. An arc links
+   the historical case to the current finding, with a travelling pulse and
+   sonar rings where it lands. Labels and positions come from dashboard.js
+   via EchoGlobe.mount(); this file reads no report data. No dependencies. */
+
+(function () {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const N = 5200;
+  const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+  const TILT = 0.32;
+  const ct = Math.cos(TILT), st = Math.sin(TILT);
+  const L = norm([-0.45, -0.6, 0.66]);
+
+  /* Precompute sphere points (lat, lon, land flag) */
+  const LAT = new Float32Array(N), LON = new Float32Array(N), LAND = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    const y = 1 - ((i + 0.5) / N) * 2;
+    const r = Math.sqrt(1 - y * y);
+    const th = i * GOLDEN;
+    const x = Math.cos(th) * r, z = Math.sin(th) * r;
+    LAT[i] = Math.asin(y);
+    LON[i] = Math.atan2(x, z);
+    const lat = LAT[i], lon = LON[i];
+    const land = Math.sin(lon * 3 + Math.sin(lat * 4) * 1.4) * Math.cos(lat * 2.6 + Math.sin(lon * 2) * 0.8)
+               + 0.45 * Math.sin(lon * 7.3 - lat * 5.1);
+    LAND[i] = land > 0.22 ? 1 : 0;
+  }
+
+  let canvas, ctx, host, W = 0, H = 0, dpr = 1, nodes = [];
+  let raf = 0, running = false, paused = false;
+  const ptr = { x: 0, y: 0, sx: 0, sy: 0 };
+
+  function norm(v) { const m = Math.hypot(...v); return v.map(a => a / m); }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function toVec(lat, lon) { return [Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon)]; }
+  function toLatLon(v) { const m = Math.hypot(v[0], v[1], v[2]); return { lat: Math.asin(v[1] / m), lon: Math.atan2(v[0], v[2]) }; }
+  function slerp(a, b, t) {
+    const d = Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+    const om = Math.acos(d);
+    if (om < 1e-4) return a;
+    const s = Math.sin(om), ka = Math.sin((1 - t) * om) / s, kb = Math.sin(t * om) / s;
+    return [a[0] * ka + b[0] * kb, a[1] * ka + b[1] * kb, a[2] * ka + b[2] * kb];
+  }
+
+  function geometry(t) {
+    const R = Math.max(150, Math.min(W * 0.36, (H - (host.dataset.clear ? +host.dataset.clear : H * 0.5)) / 1.3, 560));
+    return {
+      R,
+      cx: W / 2 + ptr.sx * 24,
+      cy: H - R * 0.3 + ptr.sy * 10,
+      rot: introSpin(t) + Math.sin((t - (t0 ?? t)) * 0.00012) * 0.18 + ptr.sx * 0.5,
+    };
+  }
+
+  /* Spins in on load and settles facing front (rot 0 = case markers centred) */
+  let t0 = null;
+  function introSpin(t) {
+    if (reduceMotion) return 0;
+    if (t0 === null) t0 = t;
+    const k = Math.min(1, (t - t0) / 2400);
+    return -2.4 * Math.pow(1 - k, 3);
+  }
+
+  /* Rotate (lat, lon) by spin then tilt; return screen point + depth */
+  function project(lat, lon, g, alt = 0) {
+    const a = lon - g.rot, k = 1 + alt;
+    const x = Math.cos(lat) * Math.sin(a) * k;
+    const y = Math.sin(lat) * k;
+    const z = Math.cos(lat) * Math.cos(a) * k;
+    const y2 = y * ct + z * st;
+    const z2 = -y * st + z * ct;
+    return { x: g.cx + x * g.R, y: g.cy + y2 * g.R, z: z2, r2: x * x + y2 * y2 };
+  }
+
+  function resize() {
+    const rect = host.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    if (!running || reduceMotion) draw(0);
+  }
+
+  function draw(t) {
+    ptr.sx += (ptr.x - ptr.sx) * 0.05;
+    ptr.sy += (ptr.y - ptr.sy) * 0.05;
+    const g = geometry(t);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    /* Atmosphere */
+    const atm = ctx.createRadialGradient(g.cx, g.cy, g.R * 0.92, g.cx, g.cy, g.R * 1.55);
+    atm.addColorStop(0, 'rgba(66,133,244,.30)');
+    atm.addColorStop(0.35, 'rgba(161,66,244,.10)');
+    atm.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = atm;
+    ctx.fillRect(0, 0, W, H);
+
+    /* Body */
+    const body = ctx.createRadialGradient(g.cx - g.R * 0.35, g.cy - g.R * 0.55, g.R * 0.1, g.cx, g.cy, g.R);
+    body.addColorStop(0, '#0d1b3a');
+    body.addColorStop(0.7, '#05070f');
+    body.addColorStop(1, '#000');
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.arc(g.cx, g.cy, g.R, 0, Math.PI * 2); ctx.fill();
+
+    /* Dots, bucketed by brightness to keep draw calls low */
+    const buckets = [new Path2D(), new Path2D(), new Path2D(), new Path2D(), new Path2D()];
+    for (let i = 0; i < N; i++) {
+      const p = project(LAT[i], LON[i], g);
+      if (p.z <= 0.02 || p.y > H + 2) continue;
+      const nx = (p.x - g.cx) / g.R, ny = (p.y - g.cy) / g.R;
+      const light = Math.max(0, nx * L[0] + ny * L[1] + p.z * L[2]);
+      const v = LAND[i] ? 0.25 + light * 0.75 : 0.06 + light * 0.18;
+      const b = Math.min(4, (v * 5) | 0);
+      const s = LAND[i] ? 0.9 + p.z * 1.1 : 0.6 + p.z * 0.45;
+      buckets[b].rect(p.x - s / 2, p.y - s / 2, s, s);
+    }
+    const alphas = [0.24, 0.42, 0.62, 0.82, 1];
+    buckets.forEach((path, b) => {
+      ctx.fillStyle = `rgba(${b > 2 ? '232,240,254' : '174,203,250'},${alphas[b]})`;
+      ctx.fill(path);
+    });
+
+    /* Rim light */
+    const rim = ctx.createLinearGradient(g.cx - g.R, g.cy - g.R, g.cx + g.R * 0.6, g.cy + g.R * 0.2);
+    rim.addColorStop(0, 'rgba(255,255,255,.55)');
+    rim.addColorStop(0.5, 'rgba(138,180,248,.25)');
+    rim.addColorStop(1, 'rgba(138,180,248,0)');
+    ctx.strokeStyle = rim;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(g.cx, g.cy, g.R, 0, Math.PI * 2); ctx.stroke();
+
+    if (nodes.length >= 2) drawEcho(t, g);
+  }
+
+  function drawEcho(t, g) {
+    const [A, B] = nodes;
+    const va = toVec(A.lat, A.lon), vb = toVec(B.lat, B.lon);
+    const M = 72, pts = [];
+    for (let i = 0; i <= M; i++) {
+      const s = i / M, ll = toLatLon(slerp(va, vb, s));
+      pts.push(project(ll.lat, ll.lon, g, Math.sin(Math.PI * s) * 0.32));
+    }
+    const vis = p => p.z > 0 || p.r2 > 1;
+
+    /* Arc with Google blue → green gradient */
+    const pa = pts[0], pb = pts[M];
+    const grad = ctx.createLinearGradient(pa.x, pa.y, pb.x, pb.y);
+    grad.addColorStop(0, A.color);
+    grad.addColorStop(1, B.color);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.6;
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    let pen = false;
+    pts.forEach(p => {
+      if (!vis(p)) { pen = false; return; }
+      if (!pen) { ctx.moveTo(p.x, p.y); pen = true; } else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    /* Pulse */
+    const cycle = 3600, s = (t % cycle) / cycle;
+    if (s < 0.75) {
+      const k = Math.floor((s / 0.75) * M);
+      const p = pts[k];
+      if (vis(p)) {
+        ctx.strokeStyle = 'rgba(255,255,255,.9)';
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        for (let i = Math.max(0, k - 10); i <= k; i++) {
+          const q = pts[i];
+          if (i === Math.max(0, k - 10)) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+        }
+        ctx.stroke();
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 16);
+        glow.addColorStop(0, 'rgba(255,255,255,.95)');
+        glow.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 16, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    /* Sonar rings at the echo target */
+    for (let k = 0; k < 3; k++) {
+      const age = ((t / 2400) + k / 3) % 1;
+      ring(B, 0.015 + age * 0.3, g, (1 - age) * 0.7, B.color);
+    }
+
+    /* Markers + label chips */
+    nodes.forEach((n, i) => {
+      const p = project(n.lat, n.lon, g);
+      if (p.z <= 0.05 || p.y > H - 8) return;
+      const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 14);
+      halo.addColorStop(0, n.color);
+      halo.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = halo;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = n.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2); ctx.stroke();
+
+      if (W < 640) return;
+      const dir = i === 0 ? -1 : 1;
+      ctx.font = '600 12px Inter, -apple-system, system-ui, sans-serif';
+      const w1 = ctx.measureText(n.label).width;
+      ctx.font = '500 11px Inter, -apple-system, system-ui, sans-serif';
+      const w2 = ctx.measureText(n.sub).width;
+      const bw = Math.max(w1, w2) + 28, bh = 44;
+      const bx = dir < 0 ? p.x - 22 - bw : p.x + 22, by = p.y - bh - 14;
+      ctx.strokeStyle = 'rgba(255,255,255,.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x + dir * 7, p.y - 5);
+      ctx.lineTo(dir < 0 ? bx + bw : bx, by + bh / 2);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(28,28,30,.72)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 14); else ctx.rect(bx, by, bw, bh);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.14)';
+      ctx.stroke();
+      ctx.fillStyle = n.color;
+      ctx.beginPath(); ctx.arc(bx + 14, by + 16, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left';
+      ctx.font = '600 12px Inter, -apple-system, system-ui, sans-serif';
+      ctx.fillStyle = '#f5f5f7';
+      ctx.fillText(n.label, bx + 22, by + 16);
+      ctx.font = '500 11px Inter, -apple-system, system-ui, sans-serif';
+      ctx.fillStyle = '#a1a1a6';
+      ctx.fillText(n.sub, bx + 14, by + 32);
+    });
+  }
+
+  function ring(n, ang, g, alpha, color) {
+    if (alpha <= 0.01) return;
+    const c = toVec(n.lat, n.lon);
+    const up = Math.abs(c[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0];
+    const u = norm(cross(c, up)), v = cross(c, u);
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    let pen = false;
+    for (let i = 0; i <= 64; i++) {
+      const th = (i / 64) * Math.PI * 2;
+      const q = [0, 1, 2].map(j => c[j] * ca + (u[j] * Math.cos(th) + v[j] * Math.sin(th)) * sa);
+      const ll = toLatLon(q), p = project(ll.lat, ll.lon, g);
+      if (p.z <= 0) { pen = false; continue; }
+      if (!pen) { ctx.moveTo(p.x, p.y); pen = true; } else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function loop(t) {
+    raf = requestAnimationFrame(loop);
+    if (!paused) draw(t);
+  }
+
+  window.EchoGlobe = {
+    /** canvas: the <canvas>; opts.nodes: [{ lat, lon, label, sub, color }] (source first, echo target second) */
+    mount(el, opts = {}) {
+      canvas = el;
+      host = el.parentElement;
+      ctx = canvas.getContext('2d');
+      nodes = opts.nodes || [];
+      new ResizeObserver(resize).observe(host);
+      resize();
+      if (reduceMotion) return;
+      host.addEventListener('pointermove', e => {
+        const r = host.getBoundingClientRect();
+        ptr.x = (e.clientX - r.left) / r.width - 0.5;
+        ptr.y = (e.clientY - r.top) / r.height - 0.5;
+      }, { passive: true });
+      host.addEventListener('pointerleave', () => { ptr.x = ptr.y = 0; });
+      running = true;
+      raf = requestAnimationFrame(loop);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelAnimationFrame(raf);
+        else raf = requestAnimationFrame(loop);
+      });
+    },
+    /** Stop drawing while the hero is fully covered */
+    pause(v) { paused = !!v; },
+  };
+})();
+
+  </script>
+  <script>
+/* EchoCode Dashboard — reads ../artifacts/final-run/report.json
+   Every fact, count, SHA, status and test outcome on the page comes from the
+   report. Hard-coded strings are limited to headings, plain-language
+   explanations and presentational labels. */
+
+(function () {
+  const report = {
+  "_note": "FINAL RUN REPORT — All values are grounded in real repository evidence. No test results, commits, or evidence items are invented. See field-level status annotations for epistemic confidence of each claim.",
+
+  "run_id": "echocode-run-2026-09-27-001",
+  "analyzed_commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+  "analyzed_commit_message": "fix: prevent duplicate refund operations",
+  "timestamp": "2026-09-27T00:00:08+01:00",
+  "pipeline_version": "0.1.0-foundation",
+  "branch": "feat/final-report",
+
+  "historical_case": {
+    "case_id": "echocode-case-001-duplicate-operation",
+    "title": "Duplicate Payment Operation — Unguarded Durable Write in Payment Processor",
+    "status": "OBSERVED / VERIFIED",
+
+    "commits": {
+      "demo_introduction": {
+        "sha": "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+        "message": "feat: add synthetic duplicate-operation demo",
+        "date": "2026-09-26",
+        "author": "Arindam Bindlish",
+        "role": "historical_payment_demo — defect present from first introduction; no deduplication guard was ever written"
+      },
+      "regression_test_added": {
+        "sha": "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+        "message": "test: add duplicate-operation regression",
+        "date": "2026-09-26",
+        "author": "Senthuran Srimurugan",
+        "role": "historical_payment_regression — behavioral regression test documents the invariant violation; test FAILS at this point"
+      },
+      "historical_fix": {
+        "sha": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+        "message": "fix: prevent duplicate payment operations",
+        "date": "2026-09-26",
+        "author": "Senthuran Srimurugan",
+        "role": "historical_payment_repair — repair enforces deduplication at the durable write point; regression test PASSES at this point"
+      }
+    },
+
+    "defect_summary": "When process_payment() was called twice with the same operation_id, both calls succeeded and two distinct rows were inserted into the ledger. A client retry — resubmitting the same logical payment after a network timeout — was treated as a brand-new operation. The ledger recorded two charges for one logical payment event.",
+
+    "regression_test_before_fix": {
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_operation.py",
+      "test_function": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
+      "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+      "at_commit_context": "f616bcd (buggy implementation)",
+      "outcome": "1 failed, 4 passed",
+      "normal_payment_tests_passed": 4,
+      "regression_test_outcome": "FAIL",
+      "expected_durable_records": 1,
+      "actual_durable_records": 2,
+      "failing_assertion": "Duplicate-operation defect: expected 1 ledger entry after a retry with operation_id='pay-retry-001', got 2. The retry was not deduplicated."
+    },
+
+    "regression_test_after_fix": {
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_operation.py",
+      "test_function": "test_retry_with_same_operation_id_does_not_create_duplicate_ledger_entry",
+      "command": "python3 -m pytest verification/tests/test_duplicate_operation.py demo/tests/test_payment_processor.py -v",
+      "at_commit_context": "5af395a (fixed implementation)",
+      "outcome": "5 passed",
+      "normal_payment_tests_passed": 4,
+      "regression_test_outcome": "PASS",
+      "expected_durable_records": 1,
+      "actual_durable_records": 1
+    },
+
+    "fix_diff_summary": "Schema: operation_id column gained UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; fallback reads existing row id when the write is suppressed.",
+    "source_files": [
+      "demo/generator/payment_processor.py",
+      "verification/tests/test_duplicate_operation.py"
+    ]
+  },
+
+  "learned_failure_pattern": {
+    "status": "OBSERVED — extracted from confirmed historical case, applied to current code",
+    "pattern_name": "Unguarded Durable Write on Repeated Logical Operation",
+    "failure_signature_file": "investigation/failure-signature.json",
+    "extracted_at_commit": "2b2c3db1b398ca35c83053c81cadc2dd15e19c79",
+    "extracted_at_commit_message": "feat: extract historical failure signature",
+
+    "summary": "A retry or repeated submission of the same logical operation reaches the durable write path more than once, violating the invariant that one logical operation produces exactly one durable effect.",
+
+    "required_conditions": [
+      "A logical operation has a unique caller-supplied identifier (an operation_id or equivalent idempotency key).",
+      "The operation has a durable write path that is reached on every invocation, regardless of prior history.",
+      "No deduplication check or enforcement mechanism exists at the point where the durable write occurs.",
+      "The caller is able to resubmit the same operation — whether due to a retry, a network fault, a message-queue redelivery, or user double-submission."
+    ],
+
+    "analogous_contexts_from_signature": [
+      "Payment processing: duplicate charge for a retried payment request",
+      "Refund processing: duplicate refund for a retried refund request",
+      "Fund transfer: duplicate debit or credit for a retried transfer",
+      "Inventory adjustment: double-adjustment for a retried stock write",
+      "Audit / event log: duplicate audit entry for a retried action",
+      "Webhook handler: duplicate processing of a redelivered webhook event",
+      "Message queue consumer: duplicate effect from a redelivered message"
+    ]
+  },
+
+  "findings": [
+    {
+      "finding_id": "CF-001",
+      "title": "Unguarded Durable Write in Refund Processor — Retry Produces Duplicate Refund Record",
+      "component": "demo/current/refund_processor.py",
+      "status": "CONFIRMED",
+
+      "status_history": [
+        {
+          "stage": "current-code-analysis",
+          "status": "CANDIDATE",
+          "commit": "291d9c944d254b0d0c01c2f26cbc76c2ed94e33e",
+          "commit_message": "feat: add current-code candidate finding",
+          "date": "2026-09-26",
+          "basis": "Static code analysis. All four structural conditions from the failure signature matched. No behavioral test had been executed."
+        },
+        {
+          "stage": "verification",
+          "status": "CONFIRMED",
+          "commit": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+          "commit_message": "test: reproduce duplicate refund finding",
+          "date": "2026-09-26",
+          "basis": "Independent behavioral regression test FAILED — submitting the same refund_reference twice produced 2 records. Structural candidate behaviorally reproduced."
+        }
+      ],
+
+      "description": "process_refund() in demo/current/refund_processor.py performs a bare INSERT INTO refund_records on every invocation. The refund_records schema carries no UNIQUE constraint on the refund_reference column. When the same refund_reference is submitted twice — as happens in a client retry after a network timeout — a second independent row is created. One logical refund operation produces two durable refund records, violating the idempotency invariant.",
+
+      "structural_evidence": {
+        "status": "OBSERVED",
+        "schema_lines": "43-54",
+        "schema_issue": "refund_reference TEXT NOT NULL — no UNIQUE constraint; a second INSERT with the same refund_reference is structurally permitted",
+        "write_path_lines": "83-90",
+        "write_path_issue": "Bare INSERT INTO refund_records executed unconditionally on every call; no prior SELECT, no INSERT OR IGNORE, no ON CONFLICT clause",
+        "function_signature_lines": "57-61",
+        "idempotency_key": "refund_reference — caller-supplied logical identifier, direct analogue of operation_id in the historical pattern"
+      },
+
+      "all_conditions_matched": true,
+      "matching_conditions": [
+        {
+          "condition_id": "MC-01",
+          "historical_condition": "A logical operation has a unique caller-supplied identifier (an operation_id or equivalent idempotency key).",
+          "current_evidence": "process_refund() accepts refund_reference as its first argument — the caller-supplied idempotency key, structurally identical to operation_id in the historical payment processor."
+        },
+        {
+          "condition_id": "MC-02",
+          "historical_condition": "The operation has a durable write path that is reached on every invocation, regardless of prior history.",
+          "current_evidence": "Lines 83-90 contain a bare INSERT INTO refund_records with no conditional logic preceding it. Every call executes this INSERT unconditionally."
+        },
+        {
+          "condition_id": "MC-03",
+          "historical_condition": "No deduplication check or enforcement mechanism exists at the point where the durable write occurs.",
+          "current_evidence": "No SELECT precedes the INSERT. No INSERT OR IGNORE or ON CONFLICT clause is present. The table schema does not declare UNIQUE on refund_reference. No application-layer lookup for prior records with the same refund_reference exists."
+        },
+        {
+          "condition_id": "MC-04",
+          "historical_condition": "The caller is able to resubmit the same operation — whether due to a retry, a network fault, a message-queue redelivery, or user double-submission.",
+          "current_evidence": "process_refund() is a plain Python function with no built-in call-count enforcement. Nothing in the module prevents the caller from invoking it multiple times with the same refund_reference."
+        }
+      ]
+    }
+  ],
+
+  "evidence": [
+    {
+      "evidence_id": "E-001",
+      "type": "source_code",
+      "status": "OBSERVED",
+      "path": "demo/current/refund_processor.py",
+      "commit": "9091734 (feat: add current refund processing scenario)",
+      "relevant_lines": "43-54 (schema), 57-61 (function signature), 83-90 (write path)",
+      "summary": "Buggy refund_processor.py: schema has no UNIQUE on refund_reference; process_refund() performs a bare unconditional INSERT on every call.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-002",
+      "type": "regression_test",
+      "status": "OBSERVED",
+      "path": "verification/tests/test_duplicate_refund.py",
+      "commit": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+      "summary": "Behavioral regression test asserting one refund_reference produces one refund_records row. Written independently from the static analysis, following the pattern of the historical regression test.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-003",
+      "type": "fail_test_run",
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_refund.py",
+      "test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+      "at_commit_context": "buggy refund_processor.py (before e1ce00f repair)",
+      "outcome": "FAIL — 1 failed, 5 passed",
+      "failing_assertion": "CF-001 behaviorally reproduced: expected 1 refund record after a retry with refund_reference='REF-RETRY-001', got 2. The retry was not deduplicated — one logical refund produced 2 durable records.",
+      "expected_durable_records": 1,
+      "actual_durable_records": 2,
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-004",
+      "type": "fix_diff",
+      "status": "OBSERVED",
+      "path": "demo/current/refund_processor.py",
+      "commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+      "commit_message": "fix: prevent duplicate refund operations",
+      "diff_summary": "Schema: refund_reference column gains UNIQUE constraint. Write path: INSERT changed to INSERT OR IGNORE; return path changed to SELECT WHERE refund_reference = ? to handle the already-exists case. Mirrors the pattern of the historical fix at 5af395a.",
+      "behavioral_effect": "A second call with the same refund_reference is silently absorbed; no new refund_records row is created. The caller receives the record of the original submission.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-005",
+      "type": "pass_test_run",
+      "status": "OBSERVED — real pytest run",
+      "test_file": "verification/tests/test_duplicate_refund.py",
+      "test_function": "test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+      "at_commit_context": "e1ce00f (repaired refund_processor.py)",
+      "combined_suite_outcome": "6 passed (1 regression + 5 normal-operation)",
+      "regression_test_outcome": "PASS",
+      "expected_durable_records": 1,
+      "actual_durable_records": 1,
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-006",
+      "type": "historical_failure_signature",
+      "status": "OBSERVED — extracted from confirmed historical case",
+      "path": "investigation/failure-signature.json",
+      "commit": "2b2c3db1b398ca35c83053c81cadc2dd15e19c79",
+      "summary": "Reusable behavioral failure pattern extracted from the historical payment processor case and applied to detect CF-001 in the current refund processor.",
+      "relevant_to_findings": ["CF-001"]
+    },
+    {
+      "evidence_id": "E-007",
+      "type": "historical_fix_diff",
+      "status": "OBSERVED",
+      "path": "demo/generator/payment_processor.py",
+      "commit": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "commit_message": "fix: prevent duplicate payment operations",
+      "summary": "Historical repair: operation_id gained UNIQUE constraint; INSERT changed to INSERT OR IGNORE. Served as the direct structural template for the refund repair at e1ce00f.",
+      "relevant_to_findings": []
+    }
+  ],
+
+  "verification_results": {
+    "tests_executed": true,
+    "historical_case": {
+      "test_suite": "verification/tests/test_duplicate_operation.py + demo/tests/test_payment_processor.py",
+      "before_fix_outcome": "1 failed, 4 passed",
+      "before_fix_regression_result": "FAIL",
+      "after_fix_outcome": "5 passed",
+      "after_fix_regression_result": "PASS",
+      "status": "OBSERVED — real pytest runs on feat/investigation branch"
+    },
+    "current_case_cf001": {
+      "test_suite": "verification/tests/test_duplicate_refund.py + demo/current/tests/test_refund_processor.py",
+      "before_repair_outcome": "1 failed, 5 passed",
+      "before_repair_regression_result": "FAIL",
+      "after_repair_outcome": "6 passed",
+      "after_repair_regression_result": "PASS",
+      "status": "OBSERVED — real pytest run on feat/final-report branch"
+    }
+  },
+
+  "repair_verification": {
+    "finding_id": "CF-001",
+    "repair_commit": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+    "repair_commit_message": "fix: prevent duplicate refund operations",
+    "repair_commit_date": "2026-09-27",
+    "repair_author": "Senthuran Srimurugan",
+    "repair_mechanism": "UNIQUE constraint added to refund_reference column; INSERT changed to INSERT OR IGNORE; return path updated to SELECT WHERE refund_reference = ? (mirrors historical fix pattern at 5af395a)",
+    "repair_verification_status": "REPAIRED / VERIFIED",
+    "verification_test": "verification/tests/test_duplicate_refund.py::test_retry_with_same_refund_reference_does_not_create_duplicate_record",
+    "regression_test_after_repair": "PASS",
+    "normal_tests_after_repair": "5 passed — no regression in correct behavior introduced by the repair",
+    "combined_suite_after_repair": "6 passed"
+  },
+
+  "commit_registry": [
+    {
+      "sha": "1afb53bc80bc2462213591b16bad4d95d7b626ce",
+      "role": "historical_payment_demo",
+      "message": "feat: add synthetic duplicate-operation demo",
+      "date": "2026-09-26",
+      "author": "Arindam Bindlish",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "f616bcdb7ad769fb16f76cdf6455c1ce716b0051",
+      "role": "historical_payment_regression",
+      "message": "test: add duplicate-operation regression",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "5af395a8b4b7cb291ac2aea202ae026edce7cff0",
+      "role": "historical_payment_repair",
+      "message": "fix: prevent duplicate payment operations",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "9091734 (90917340d9388aec663dab2bb3ca094579117a31)",
+      "role": "current_refund_scenario",
+      "message": "feat: add current refund processing scenario",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "291d9c944d254b0d0c01c2f26cbc76c2ed94e33e",
+      "role": "current_code_candidate_finding",
+      "message": "feat: add current-code candidate finding",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "f5f459733ff395861ed6d749094d6a05cd4eed53",
+      "role": "refund_behavioral_verification",
+      "message": "test: reproduce duplicate refund finding",
+      "date": "2026-09-26",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    },
+    {
+      "sha": "e1ce00f60838863d2001e4597ca85e9aa8280114",
+      "role": "refund_repair",
+      "message": "fix: prevent duplicate refund operations",
+      "date": "2026-09-27",
+      "author": "Senthuran Srimurugan",
+      "status": "OBSERVED"
+    }
+  ],
+
+  "evidence_chain": [
+    { "step": 1,  "status": "OBSERVED",           "description": "Historical payment demo introduced at commit 1afb53b. process_payment() performs a bare INSERT with no deduplication guard. Defect present from first introduction." },
+    { "step": 2,  "status": "OBSERVED",           "description": "Historical behavioral regression test added at commit f616bcd. Test asserts one operation_id produces one ledger entry. Test FAILS — actual count is 2, expected 1." },
+    { "step": 3,  "status": "OBSERVED",           "description": "Historical payment repair applied at commit 5af395a. UNIQUE constraint added to operation_id; INSERT changed to INSERT OR IGNORE. Same regression test PASSES — count is 1." },
+    { "step": 4,  "status": "OBSERVED",           "description": "Failure signature extracted at commit 2b2c3db. Reusable behavioral pattern generalised: 'Unguarded Durable Write on Repeated Logical Operation'. Signature stored in investigation/failure-signature.json." },
+    { "step": 5,  "status": "OBSERVED",           "description": "Current refund scenario introduced at commit 9091734. demo/current/refund_processor.py written with bare INSERT and no UNIQUE constraint on refund_reference." },
+    { "step": 6,  "status": "OBSERVED / INFERRED","description": "Static code analysis at commit 291d9c9 identifies CF-001 as a CANDIDATE. All four required structural conditions from the failure signature match in refund_processor.py. Status held at candidate pending behavioral test." },
+    { "step": 7,  "status": "OBSERVED",           "description": "Independent behavioral regression test written at commit f5f4597 (verification/tests/test_duplicate_refund.py). Test executes process_refund() twice with the same refund_reference. Test FAILS — count is 2, expected 1. CF-001 behaviorally reproduced." },
+    { "step": 8,  "status": "CONFIRMED",          "description": "CF-001 promoted from CANDIDATE to CONFIRMED. Behavioral reproduction at step 7 confirms the structural prediction at step 6. One logical refund produced two durable records." },
+    { "step": 9,  "status": "OBSERVED",           "description": "Refund repair applied at commit e1ce00f. UNIQUE constraint added to refund_reference; INSERT changed to INSERT OR IGNORE; return path updated to SELECT WHERE refund_reference = ?. Mirrors the historical payment fix pattern." },
+    { "step": 10, "status": "REPAIRED / VERIFIED", "description": "Same refund regression test re-run after repair. Test PASSES — count is 1. All 5 normal-operation tests continue to pass. Combined suite: 6 passed. CF-001 is REPAIRED / VERIFIED." }
+  ],
+
+  "limitations": [
+    "SYNTHETIC / LOCAL DEMONSTRATION — This pipeline operates on a completely local, self-contained demonstration application. All data is synthetic. No real customers, accounts, or financial transactions are involved at any stage.",
+    "PYTHON + SQLITE PROTOTYPE — The demonstration uses Python with an in-memory SQLite database. The failure pattern is not specific to this stack, but the deduplication mechanism (SQL UNIQUE constraint + INSERT OR IGNORE) is SQLite-specific. Real-world systems may use different enforcement mechanisms.",
+    "SINGLE FAILURE FAMILY — Only one failure class was demonstrated end-to-end: 'Unguarded Durable Write on Repeated Logical Operation'. The pipeline has not been validated against other failure families. The failure-signature library contains one entry.",
+    "NO REAL FINANCIAL SYSTEM INTEGRATION — The refund and payment processors are synthetic demo components. No real payment gateway, banking API, or financial infrastructure is connected, queried, or simulated as live at any point.",
+    "NO PRODUCTION CI/CD INTEGRATION — Tests are run manually from the command line. There is no automated trigger, no CI pipeline, and no deployment gate that runs EchoCode on every commit.",
+    "HUMAN-REVIEWED GIT WORKFLOW — EchoCode proposes fixes only. No code change is automatically merged. A human must review, approve, and apply every proposed repair before it reaches a production environment.",
+    "NO AUTOMATIC CODE MERGE — The repair at commit e1ce00f was authored and committed by a team member. EchoCode identified and described the repair; it did not directly write, commit, or deploy any production code.",
+    "CONCURRENT SUBMISSION NOT TESTED — Race conditions involving two truly simultaneous submissions of the same refund_reference (or operation_id) at the OS or network layer are not covered by the regression tests. The UNIQUE constraint provides atomic enforcement at the database layer, but no test validates the concurrent case.",
+    "IN-MEMORY DATABASE SCOPE — The retry scenario was tested within a single process session using an :memory: SQLite database. Cross-process or cross-session persistence behaviour is not tested.",
+    "PATTERN GENERALISATION NOT EXTERNALLY VALIDATED — The failure signature was extracted from one historical case (payment processor) and applied to one current case (refund processor). Two instances increase confidence, but the pattern has not been validated against a third independent incident outside this repository."
+  ]
+}
+;
+  render(report);
+})();
+
+/* ── Utilities ─────────────────────────────────────────────────────── */
+
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** HTML-escape text taken from the report before injecting it */
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+/** Extract a 7-char short SHA from various formats in report.json */
+function shortSha(full) {
+  if (!full || full === '—') return '—';
+  const m = String(full).match(/([0-9a-f]{7,40})/i);
+  return m ? m[1].slice(0, 7) : String(full).slice(0, 7);
+}
+
+/** Map a report status string to a colour tone */
+function tone(s) {
+  const u = String(s || '').toUpperCase();
+  if (u.includes('REPAIRED') || u.includes('VERIFIED')) return 'green';
+  if (u.includes('CONFIRMED')) return 'purple';
+  if (u.includes('CANDIDATE')) return 'yellow';
+  if (u.includes('INFERRED'))  return 'gray';
+  if (u.includes('FAIL'))      return 'red';
+  if (u.includes('PASS'))      return 'green';
+  return 'blue';
+}
+
+function badge(text, t, dot) {
+  return `<span class="badge tone-${t || tone(text)}">${dot ? '<i class="badge-dot"></i>' : ''}${esc(text)}</span>`;
+}
+
+/** Parse a pytest summary such as "1 failed, 5 passed" into counts */
+function parseOutcome(text) {
+  const s = String(text || '');
+  const failed = +(s.match(/(\d+)\s+failed/) || [0, 0])[1];
+  const passed = +(s.match(/(\d+)\s+passed/) || [0, 0])[1];
+  return { failed, passed, total: failed + passed };
+}
+
+/** One pill per test, red for failures */
+function testBar(outcome) {
+  const o = parseOutcome(outcome);
+  if (!o.total) return '';
+  const cells = [
+    ...Array.from({ length: o.passed }, () => 'tb-pass'),
+    ...Array.from({ length: o.failed }, () => 'tb-fail'),
+  ].map((c, i) => `<i class="${c}" style="--i:${i}"></i>`).join('');
+  return `<div class="testbar" title="${esc(outcome)}">
+    <div class="testbar-cells">${cells}</div>
+    <div class="testbar-label"><span class="t-green">${o.passed} passed</span>${o.failed ? ` · <span class="t-red">${o.failed} failed</span>` : ''}</div>
+  </div>`;
+}
+
+const num = v => (v === undefined || v === null || v === '' || isNaN(+v)) ? null : +v;
+
+/* Material-style icon paths (24×24) */
+const ICONS = {
+  home:        'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+  lightbulb:   'M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z',
+  verified:    'M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.69 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.6 22.5l3.4-1.47 3.4 1.46 1.89-3.19 3.61-.82-.34-3.69L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z',
+  play_circle: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z',
+  hub:         'M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z',
+  bug:         'M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z',
+  science:     'M19.8 18.4L14 10.67V6.5l1.35-1.69c.26-.33.03-.81-.39-.81H9.04c-.42 0-.65.48-.39.81L10 6.5v4.17L4.2 18.4c-.49.66-.02 1.6.8 1.6h14c.82 0 1.29-.94.8-1.6z',
+  history:     'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z',
+  info:        'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z',
+  check:       'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+  check_circle:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+  error:       'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z',
+  chevron_l:   'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z',
+  chevron_r:   'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
+  expand:      'M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z',
+  replay:      'M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z',
+  pause:       'M6 19h4V5H6v14zm8-14v14h4V5h-4z',
+  play:        'M8 5v14l11-7z',
+  skip:        'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z',
+  arrow_down:  'M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z',
+  arrow_right: 'M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z',
+  search:      'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+  school:      'M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z',
+  build:       'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z',
+  code:        'M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z',
+  compare:     'M9.01 14H2v2h7.01v3L13 15l-3.99-4v3zm5.98-1v-3H22V8h-7.01V5L11 9l3.99 4z',
+  commit:      'M16.9 11a5 5 0 0 0-9.8 0H2v2h5.1a5 5 0 0 0 9.8 0H22v-2h-5.1zM12 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z',
+};
+function icon(name, cls = '') {
+  return `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name] || ''}"/></svg>`;
+}
+
+/** Google Material 3 button */
+function gbtn(label, variant = 'filled', ic = '', attrs = '') {
+  return `<button class="gbtn gbtn-${variant}${ic ? ' has-icon' : ''}" ${attrs}>${ic ? icon(ic) : ''}<span>${label}</span></button>`;
+}
+
+function logoMark() {
+  return `<span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
+}
+
+/** Section heading block */
+function head(eyebrow, title, sub, t = 'blue') {
+  return `
+  <header class="sec-head" data-stagger>
+    <p class="eyebrow t-${t}">${eyebrow}</p>
+    <h2 class="sec-title">${title}</h2>
+    ${sub ? `<p class="sec-sub">${sub}</p>` : ''}
+  </header>`;
+}
+
+/** Decorative blurred orbs with parallax */
+function orbs(list) {
+  return list.map(([c, x, y, s, speed]) =>
+    `<i class="orb orb-${c}" data-speed="${speed}" style="left:${x};top:${y};--s:${s}px" aria-hidden="true"></i>`).join('');
+}
+
+const ROLE_LABELS = {
+  historical_payment_demo:        'Historical demo',
+  historical_payment_regression:  'Regression test',
+  historical_payment_repair:      'Historical repair',
+  failure_signature:              'Pattern extracted',
+  current_refund_scenario:        'Current scenario',
+  current_code_candidate_finding: 'Candidate finding',
+  refund_behavioral_verification: 'Behavioral test',
+  refund_repair:                  'Repair applied',
+};
+const ROLE_TONE = {
+  historical_payment_demo: 'blue', historical_payment_regression: 'red', historical_payment_repair: 'green',
+  failure_signature: 'purple', current_refund_scenario: 'yellow', current_code_candidate_finding: 'yellow',
+  refund_behavioral_verification: 'blue', refund_repair: 'green',
+};
+const phaseOf = role => (/^historical|^failure_signature/.test(role) ? 'historical' : 'current');
+
+/* Short titles for each of the 10 evidence chain steps */
+const EC_TITLES = [
+  'Defect introduced', 'Regression test fails', 'Historical repair', 'Pattern extracted', 'Vulnerable code added',
+  'Candidate identified', 'Behavioral test fails', 'Finding confirmed', 'Repair applied', 'Repair verified',
+];
+
+function ecSentence(desc) {
+  const periodIdx = desc.indexOf('.');
+  const first = periodIdx > 0 && periodIdx < 120 ? desc.slice(0, periodIdx + 1) : desc;
+  if (first.length <= 115) return first;
+  const cut = first.lastIndexOf(' ', 110);
+  return cut > 0 ? first.slice(0, cut) + '…' : first.slice(0, 110) + '…';
+}
+
+/* Concise display summaries for each limitation, keyed by partial match */
+const LIMIT_DISPLAY = [
+  { match: 'SYNTHETIC',              title: 'Synthetic data only',         detail: 'All data is synthetic. No real customers or transactions involved.' },
+  { match: 'PYTHON',                 title: 'Python + SQLite',             detail: 'Prototype implementation only. Enforcement mechanism is SQLite-specific.' },
+  { match: 'SINGLE FAILURE',         title: 'One pattern family',          detail: 'Only one failure class demonstrated end-to-end.' },
+  { match: 'NO REAL FINANCIAL',      title: 'No financial system',         detail: 'No real payment gateway or banking API connected at any point.' },
+  { match: 'NO PRODUCTION',          title: 'No production CI/CD',         detail: 'Manual local validation only. No automated trigger or deployment gate.' },
+  { match: 'HUMAN-REVIEWED',         title: 'Humans stay in charge',       detail: 'EchoCode proposes fixes only. Humans review and apply every repair.' },
+  { match: 'NO AUTOMATIC CODE',      title: 'No automatic merge',          detail: 'Repair was authored by a team member. EchoCode did not commit to production.' },
+  { match: 'CONCURRENT',             title: 'Concurrency not tested',      detail: 'Simultaneous retry behaviour remains outside prototype scope.' },
+  { match: 'IN-MEMORY',              title: 'In-memory database',          detail: 'Cross-process or cross-session persistence behaviour is not tested.' },
+  { match: 'PATTERN GENERALISATION', title: 'Pattern not yet generalised', detail: 'Pattern validated across two cases only — not a third independent incident.' },
+];
+function limitTitle(text) {
+  const m = text.match(/^([^—–\n]+?)(?:\s*[—–]|\s{2,}|$)/);
+  return m ? m[1].trim() : text.slice(0, 60);
+}
+function limitDetail(text) {
+  const idx = text.indexOf('—');
+  return idx >= 0 ? text.slice(idx + 1).trim() : '';
+}
+
+const SECTIONS = [
+  { id: 'hero',    label: 'Home',         icon: 'home',        theme: 'dark'  },
+  { id: 'how',     label: 'How it works', icon: 'lightbulb',   theme: 'light' },
+  { id: 'result',  label: 'Result',       icon: 'verified',    theme: 'paper' },
+  { id: 'replay',  label: 'Replay',       icon: 'play_circle', theme: 'dark'  },
+  { id: 'pattern', label: 'Pattern',      icon: 'hub',         theme: 'light' },
+  { id: 'finding', label: 'Finding',      icon: 'bug',         theme: 'paper' },
+  { id: 'tests',   label: 'Tests',        icon: 'science',     theme: 'light' },
+  { id: 'proof',   label: 'Proof',        icon: 'history',     theme: 'paper' },
+  { id: 'limits',  label: 'Limits',       icon: 'info',        theme: 'dark'  },
+];
+
+/* ── Main render ───────────────────────────────────────────────────── */
+
+function render(r) {
+  const finding = r.findings[0];
+  const lp      = r.learned_failure_pattern;
+  const ev      = type => (r.evidence || []).find(e => e.type === type) || {};
+
+  const ctx = {
+    r, finding, lp,
+    rv:    r.repair_verification || {},
+    hist:  r.historical_case || {},
+    cf:    (r.verification_results || {}).current_case_cf001 || {},
+    failE: ev('fail_test_run'),
+    passE: ev('pass_test_run'),
+    chain: r.evidence_chain || [],
+  };
+  ctx.overall = ctx.rv.repair_verification_status || finding.status;
+
+  /* Display-ready commit list, inserting the signature extraction commit */
+  const commits = [...(r.commit_registry || [])];
+  const sigEntry = {
+    sha: lp.extracted_at_commit, role: 'failure_signature',
+    message: lp.extracted_at_commit_message, date: '2026-09-26', status: 'OBSERVED',
+  };
+  const repairIdx = commits.findIndex(c => c.role === 'historical_payment_repair');
+  commits.splice(repairIdx >= 0 ? repairIdx + 1 : 3, 0, sigEntry);
+  ctx.commits = commits;
+
+  document.getElementById('app').innerHTML = `
+    ${buildDock()}
+    ${buildHero(ctx)}
+    <main class="sheet">
+      ${buildHow(ctx)}
+      ${buildResult(ctx)}
+      ${buildReplay(ctx)}
+      ${buildPattern(ctx)}
+      ${buildFinding(ctx)}
+      ${buildTests(ctx)}
+      ${buildProof(ctx)}
+      ${buildLimits(ctx)}
+      <footer class="foot">
+        <div class="foot-logo">${logoMark()}EchoCode</div>
+        <p>${esc(r.run_id)} · pipeline ${esc(r.pipeline_version)} · commit <span class="mono">${shortSha(r.analyzed_commit)}</span> · ${esc(r.timestamp)}</p>
+        <p class="foot-note">Every figure on this page is read from <span class="mono">artifacts/final-run/report.json</span>.</p>
+      </footer>
+    </main>`;
+
+  setupReveals();
+  setupScrollFx();
+  setupGlobe(ctx);
+  setupReplay(ctx.chain, commits);
+  setupRetrySims();
+  setupProof();
+  setupExpanders();
+  setupCounters();
+  setupPointerFx();
+  setupRipples();
+  setupGo();
+  setupKeys();
+}
+
+/* ── Dock (floating icon menu) ─────────────────────────────────────── */
+
+function buildDock() {
+  return `
+  <nav class="dock" aria-label="Sections">
+    ${SECTIONS.map((s, i) => `
+      <a class="dock-item" href="#${s.id}" data-target="${s.id}" aria-label="${s.label} (key ${i + 1})">
+        ${icon(s.icon)}<span class="dock-label">${s.label}</span>
+      </a>`).join('')}
+  </nav>`;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+
+function buildHero({ finding, rv, overall, hist }) {
+  const words = 'From past defects'.split(' ');
+  const idKey = ((finding.structural_evidence || {}).idempotency_key || '').split('—')[0].trim();
+  return `
+  <section class="hero" id="hero" data-theme="dark">
+    <div class="hero-stage">
+      <canvas class="hero-globe" aria-hidden="true"></canvas>
+    </div>
+    <div class="hero-floats" aria-hidden="true">
+      <span class="float-chip fc-1" data-speed="-0.25"><i class="dot-blue"></i>operation_id</span>
+      <span class="float-chip fc-2" data-speed="-0.4"><i class="dot-green"></i>fix ${shortSha(((hist.commits || {}).historical_fix || {}).sha)}</span>
+      <span class="float-chip fc-3" data-speed="-0.3"><i class="dot-yellow"></i>${esc(idKey)}</span>
+      <span class="float-chip fc-4" data-speed="-0.45"><i class="dot-purple"></i>${esc(finding.finding_id)} · ${esc(finding.status.toLowerCase())}</span>
+    </div>
+    <div class="hero-inner">
+      <p class="hero-kicker">${logoMark()}<span>EchoCode</span><span class="sep"></span><span class="muted">AI code forensics</span></p>
+      <h1 class="hero-title">
+        <span class="line">${words.map((w, i) => `<span class="w" style="--i:${i}">${w}</span>`).join(' ')}</span>
+        <span class="line grad-line"><span class="grad">to future prevention.</span></span>
+      </h1>
+      <p class="hero-sub">EchoCode learned why a payment bug happened, found the same mistake hiding in the refund code, and proved the fix with a real test.</p>
+      <div class="hero-cta">
+        ${gbtn('Watch the replay', 'filled', 'play', 'data-go="replay" data-play')}
+        ${gbtn('See the result', 'outlined', '', 'data-go="result"')}
+      </div>
+      <div class="hero-status">${badge(overall, 'green', true)}<span class="muted">${esc(finding.finding_id)} · verified at <span class="mono">${shortSha(rv.repair_commit)}</span></span></div>
+    </div>
+    <a class="scroll-cue" href="#how" aria-label="Scroll to how it works">${icon('arrow_down')}</a>
+  </section>`;
+}
+
+/* ── How it works ──────────────────────────────────────────────────── */
+
+function buildHow({ finding, lp, hist, cf, failE, passE }) {
+  const hb   = hist.regression_test_before_fix || {};
+  const fix  = ((hist.commits || {}).historical_fix || {}).sha;
+  const mc   = finding.matching_conditions || [];
+  const file = String(finding.component || '').split('/').pop();
+
+  const statement = 'A retried request should never write twice. EchoCode remembers when one did, and hunts for the same mistake in new code.';
+
+  const cards = [
+    { n: '01', ic: 'school', t: 'blue', title: 'Learn from a past bug',
+      text: `A retried payment saved <b>${esc(hb.actual_durable_records)}</b> ledger rows instead of <b>${esc(hb.expected_durable_records)}</b>. The team fixed it, and EchoCode learned why it happened.`,
+      fact: `Fixed in <span class="mono">${shortSha(fix)}</span>` },
+    { n: '02', ic: 'search', t: 'yellow', title: 'Spot the same mistake',
+      text: `It turned that bug into a reusable pattern and scanned current code. <span class="mono">${esc(file)}</span> matched <b>${mc.length} of ${(lp.required_conditions || []).length}</b> warning signs.`,
+      fact: esc(lp.pattern_name) },
+    { n: '03', ic: 'check_circle', t: 'green', title: 'Prove it with a test',
+      text: `A behavioral test reproduced the bug: <b>${esc(failE.actual_durable_records)}</b> rows for one refund. After the repair, the same unchanged test gets <b>${esc(passE.actual_durable_records)}</b>.`,
+      fact: `${esc(cf.before_repair_outcome)} → ${esc(cf.after_repair_outcome)}` },
+  ];
+
+  return `
+  <section class="sec" id="how" data-theme="light">
+    ${orbs([['blue', '-6%', '8%', 420, -0.12], ['yellow', '84%', '40%', 300, 0.1], ['green', '12%', '78%', 260, -0.08]])}
+    <div class="wrap">
+      ${head('How it works', 'Three steps.<br>One real bug, caught.', '', 'blue')}
+      <p class="scrub" aria-label="${statement}">${statement.split(' ').map(w => `<span>${w}</span>`).join(' ')}</p>
+      <div class="how-grid" data-stagger>
+        ${cards.map(c => `
+        <article class="card how-card tilt">
+          <div class="how-top">
+            <span class="icon-bubble tone-${c.t}">${icon(c.ic)}</span>
+            <span class="how-n">${c.n}</span>
+          </div>
+          <h3 class="card-title">${c.title}</h3>
+          <p class="card-text">${c.text}</p>
+          <p class="how-fact t-${c.t}">${c.fact}</p>
+        </article>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ── Result ────────────────────────────────────────────────────────── */
+
+function buildResult({ r, finding, rv, cf, failE, passE, chain, overall }) {
+  const before   = num(failE.actual_durable_records);
+  const after    = num(passE.actual_durable_records);
+  const expected = num(passE.expected_durable_records);
+  const dots = chain.map(c => `<i class="chain-dot tone-${tone(c.status)}" title="Step ${c.step} · ${esc(c.status)}"></i>`).join('');
+  const ref  = (String(failE.failing_assertion || '').match(/refund_reference='([^']+)'/) || [])[1] || 'refund_reference';
+  /* one pill per recorded row; rows beyond the expected count are duplicates */
+  const dbRows = n => Array.from({ length: n || 0 }, (_, i) => {
+    const dup = expected !== null && i >= expected;
+    return `<div class="dbrow${dup ? ' dup' : ''}" style="--i:${i}"><span class="mono">${esc(ref)}</span><b>${dup ? 'Duplicate' : 'Saved'}</b></div>`;
+  }).join('');
+
+  return `
+  <section class="sec" id="result" data-theme="paper">
+    <div class="wrap">
+      ${head('The result', 'Repaired. And proven.', 'One retried refund used to create two database rows. Now it creates one, and a real test proves it.', 'green')}
+      <div class="result-grid" data-stagger>
+        <article class="card result-main">
+          <div class="rm-top">${badge(overall, 'green', true)}<span class="muted mono">${esc(finding.finding_id)}</span></div>
+          <h3 class="rm-title">${esc(finding.title)}</h3>
+          <p class="rm-q">What happens when the same refund is sent twice?</p>
+          <div class="compare">
+            <div class="cmp cmp-bad">
+              <p class="cmp-label">${icon('error')}Before repair</p>
+              <p class="compare-num" data-count="${before ?? ''}">${before ?? '—'}</p>
+              <p class="cmp-unit">database rows</p>
+              <div class="dbrows">${dbRows(before)}</div>
+            </div>
+            <div class="cmp-mid" aria-hidden="true">
+              <span class="cmp-line"></span>
+              <span class="compare-arrow">${icon('arrow_right')}</span>
+              <span class="cmp-fix">${icon('build')}<span class="mono">${shortSha(rv.repair_commit)}</span></span>
+            </div>
+            <div class="cmp cmp-good">
+              <p class="cmp-label">${icon('check_circle')}After repair</p>
+              <p class="compare-num" data-count="${after ?? ''}">${after ?? '—'}</p>
+              <p class="cmp-unit">database row${after === 1 ? '' : 's'}</p>
+              <div class="dbrows">${dbRows(after)}</div>
+            </div>
+          </div>
+          <div class="rm-foot">
+            <span class="soft-chip">${icon('check')}Expected: ${expected ?? '—'} row per refund</span>
+            <span class="soft-chip">${icon('check')}Same test · no assertion changes</span>
+          </div>
+        </article>
+        <article class="card tile">
+          <p class="tile-label">Tests before repair</p>
+          <p class="tile-num">${parseOutcome(cf.before_repair_outcome).failed} <span>failing</span></p>
+          ${testBar(cf.before_repair_outcome)}
+        </article>
+        <article class="card tile">
+          <p class="tile-label">Tests after repair</p>
+          <p class="tile-num">${parseOutcome(cf.after_repair_outcome).passed} <span>passing</span></p>
+          ${testBar(cf.after_repair_outcome)}
+        </article>
+        <article class="card tile">
+          <p class="tile-label">Evidence trail</p>
+          <p class="tile-num" data-count="${chain.length}">${chain.length} <span>steps</span></p>
+          <div class="chain-dots">${dots}</div>
+          <p class="testbar-label">${(r.commit_registry || []).length} commits in the registry</p>
+        </article>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ── Replay ────────────────────────────────────────────────────────── */
+
+function buildReplay({ r, lp, finding, failE, passE, chain }) {
+  const mc = finding.matching_conditions || [];
+  const stages = [
+    { ic: 'school',       t: 'blue',   label: 'Historical bug',  title: 'Payment retry',             detail: 'Duplicate charge on a repeated operation_id', b: ['Observed', 'blue'] },
+    { ic: 'hub',          t: 'blue',   label: 'Pattern learned', title: esc(lp.pattern_name),        detail: 'Extracted from Git history',                   b: ['Extracted', 'blue'] },
+    { ic: 'code',         t: 'yellow', label: 'Current code',    title: 'Refund processor',          detail: `${mc.length} of ${(lp.required_conditions || []).length} conditions matched`, b: ['Candidate', 'yellow'] },
+    { ic: 'error',        t: 'red',    label: 'Behavioral test', title: 'Fails',                     detail: `Expected ${esc(failE.expected_durable_records)} row · got ${esc(failE.actual_durable_records)}`, b: ['Confirmed', 'purple'] },
+    { ic: 'build',        t: 'green',  label: 'Repair',          title: 'UNIQUE + INSERT OR IGNORE', detail: 'Mirrors the historical fix',                   b: ['Repaired', 'green'] },
+    { ic: 'check_circle', t: 'green',  label: 'Same test',       title: 'Passes',                    detail: `Expected ${esc(passE.expected_durable_records)} row · got ${esc(passE.actual_durable_records)}`, b: ['Verified', 'green'] },
+  ];
+
+  return `
+  <section class="sec" id="replay" data-theme="dark">
+    ${orbs([['blue', '70%', '-4%', 460, -0.1], ['purple', '-8%', '60%', 380, 0.12]])}
+    <div class="wrap">
+      ${head('Replay', 'Watch the investigation unfold.', `${chain.length} recorded steps, played back in order. Each stage lights up as its evidence arrives.`, 'purple')}
+      <div class="flow" data-stagger>
+        ${stages.map((s, i) => `
+        <article class="card flow-node">
+          <div class="flow-top"><span class="icon-bubble sm tone-${s.t}">${icon(s.ic)}</span><span class="flow-n">${i + 1}</span></div>
+          <p class="flow-label t-${s.t}">${s.label}</p>
+          <h3 class="flow-title">${s.title}</h3>
+          <p class="flow-detail">${s.detail}</p>
+          ${badge(s.b[0], s.b[1])}
+        </article>`).join('')}
+      </div>
+
+      <div class="console card" data-reveal>
+        <div class="console-head">
+          ${logoMark()}
+          <p class="console-title">Evidence replay <span class="muted mono">${esc(r.run_id)}</span></p>
+          <div class="console-ctrl">
+            ${gbtn('Pause', 'tonal', 'pause', 'data-replay="toggle"')}
+            ${gbtn('Restart', 'outlined', 'replay', 'data-replay="restart"')}
+            ${gbtn('Show all', 'text', 'skip', 'data-replay="skip"')}
+          </div>
+        </div>
+        <div class="stepper">
+          <div class="stepper-rail"><div class="stepper-fill"></div></div>
+          ${chain.map((c, i) => `<button class="stp" data-step="${i}" aria-label="Jump to step ${c.step}: ${EC_TITLES[i] || ''}"><span>${c.step}</span></button>`).join('')}
+        </div>
+        <div class="console-body" role="log" aria-live="off"></div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ── Pattern ───────────────────────────────────────────────────────── */
+
+function buildPattern({ finding, lp, hist, rv, failE }) {
+  const hb = hist.regression_test_before_fix || {};
+  const fixSha = ((hist.commits || {}).historical_fix || {}).sha;
+  const idKey = ((finding.structural_evidence || {}).idempotency_key || '').split('—')[0].trim();
+  const conds = ['Caller-supplied identity', 'Unconditional durable write', 'No deduplication guard', 'Operation can be retried'];
+  const full  = lp.required_conditions || [];
+
+  const facts = rows => rows.map(([k, v, t]) =>
+    `<div class="fact"><span class="fact-k">${k}</span><span class="fact-v${t ? ' t-' + t : ''}">${v}</span></div>`).join('');
+
+  return `
+  <section class="sec" id="pattern" data-theme="light">
+    ${orbs([['purple', '78%', '10%', 360, -0.1], ['blue', '-4%', '55%', 320, 0.1]])}
+    <div class="wrap">
+      ${head('Pattern', 'Same mistake.<br>Different code.', 'The payment bug and the refund bug look different on the surface, but they fail in exactly the same way.', 'purple')}
+      <div class="pair" data-stagger>
+        <article class="card case">
+          <p class="eyebrow-sm t-blue">Historical case</p>
+          <h3 class="card-title">Payment processor</h3>
+          ${facts([
+            ['Identity key', '<span class="mono">operation_id</span>'],
+            ['What went wrong', `${esc(hb.actual_durable_records)} rows for one payment`, 'red'],
+            ['Status', `Fixed in <span class="mono">${shortSha(fixSha)}</span>`, 'green'],
+          ])}
+        </article>
+        <div class="echo-link" aria-hidden="true">
+          <span class="echo-ring"></span><span class="echo-ring"></span>
+          <span class="echo-core">${icon('compare')}</span>
+          <span class="echo-label">Same behavior</span>
+        </div>
+        <article class="card case">
+          <p class="eyebrow-sm t-purple">Current case · ${esc(finding.finding_id)}</p>
+          <h3 class="card-title">Refund processor</h3>
+          ${facts([
+            ['Identity key', `<span class="mono">${esc(idKey)}</span>`],
+            ['What went wrong', `${esc(failE.actual_durable_records)} rows for one refund`, 'red'],
+            ['Status', `Fixed in <span class="mono">${shortSha(rv.repair_commit)}</span>`, 'green'],
+          ])}
+        </article>
+      </div>
+
+      <article class="card pattern-card" data-reveal>
+        <p class="eyebrow-sm t-purple">The learned pattern</p>
+        <h3 class="pattern-name">“${esc(lp.pattern_name)}”</h3>
+        <p class="card-text">${esc(lp.summary || '')}</p>
+        <div class="assist-row">
+          ${conds.map((c, i) => `<span class="assist-chip" title="${esc(full[i] || '')}">${icon('check')}${c}</span>`).join('')}
+        </div>
+      </article>
+
+      <div class="reach" data-reveal>
+        <div class="reach-head">
+          <h3 class="reach-title">Where else could this happen?</h3>
+          <p class="card-text">Contexts listed by the failure signature. This run analyzed two of them.</p>
+        </div>
+        <div class="reach-grid">
+          ${(lp.analogous_contexts_from_signature || []).map(c => {
+            const [domain, effect] = c.split(/:\s*/);
+            const hit = /^payment/i.test(domain) ? 'Historical case' : /^refund/i.test(domain) ? finding.finding_id : '';
+            return `<div class="reach-cell${hit ? ' hit' : ''}">
+              <p class="reach-domain">${esc(domain)}</p>
+              <p class="reach-effect">${esc(effect || '')}</p>
+              <p class="reach-state">${hit ? `${icon('check_circle')}${esc(hit)}` : 'Not analyzed yet'}</p>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ── Finding ───────────────────────────────────────────────────────── */
+
+function buildFinding({ finding, rv }) {
+  const stages = (finding.status_history || []).map(h => ({
+    status: h.status, date: h.date, sha: shortSha(h.commit), note: ecSentence(h.basis || ''),
+  }));
+  if (rv.repair_verification_status) {
+    stages.push({ status: rv.repair_verification_status, date: rv.repair_commit_date, sha: shortSha(rv.repair_commit), note: ecSentence(rv.repair_mechanism || '') });
+  }
+
+  return `
+  <section class="sec" id="finding" data-theme="paper">
+    <div class="wrap">
+      ${head('Finding', `${esc(finding.finding_id)}: where the bug lives.`, 'The refund code saved a new row on every call, so a retry saved the same refund twice.', 'red')}
+      <article class="card finding" data-reveal>
+        <div class="finding-head">
+          <span class="id-chip">${esc(finding.finding_id)}</span>
+          <div class="finding-info">
+            <h3 class="card-title">${esc(finding.title)}</h3>
+            <p class="mono t-blue small">${esc(finding.component)}</p>
+          </div>
+          ${badge(finding.status, null, true)}
+        </div>
+
+        <div class="life" style="--n:${stages.length}">
+          <div class="life-rail"><div class="life-fill"></div></div>
+          ${stages.map((s, i) => `
+          <div class="life-step" style="--i:${i}">
+            <span class="life-dot tone-${tone(s.status)}">${icon('check')}</span>
+            ${badge(s.status)}
+            <p class="life-meta">${esc(s.date)} · <span class="mono">${s.sha}</span></p>
+            <p class="life-note">${esc(s.note)}</p>
+          </div>`).join('')}
+        </div>
+
+        ${buildCodeMap(finding)}
+
+        <div class="expand-row">
+          ${gbtn('Show technical reasoning', 'text', 'expand', 'data-expand="reasoning" aria-expanded="false"')}
+        </div>
+        <div class="expander" id="reasoning">
+          <div class="expander-inner">
+            <p class="card-text">${esc(finding.description)}</p>
+            <div class="mc-grid">
+              ${(finding.matching_conditions || []).map(mc => `
+              <div class="mc">
+                <p class="mc-id">${esc(mc.condition_id)}</p>
+                <p class="mc-hist"><span>Historical</span>${esc(mc.historical_condition)}</p>
+                <p class="mc-cur"><span>Current code</span>${esc(mc.current_evidence)}</p>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>`;
+}
+
+/** Line-reference map of the finding's component, from structural_evidence */
+function buildCodeMap(finding) {
+  const se = finding.structural_evidence || {};
+  const regions = [
+    { key: 'schema_lines',             name: 'Schema',             issue: se.schema_issue,     t: 'red' },
+    { key: 'function_signature_lines', name: 'Function signature', issue: se.idempotency_key,  t: 'yellow' },
+    { key: 'write_path_lines',         name: 'Write path',         issue: se.write_path_issue, t: 'red' },
+  ].map(x => {
+    const m = String(se[x.key] || '').match(/(\d+)\s*-\s*(\d+)/);
+    return m ? { ...x, from: +m[1], to: +m[2] } : null;
+  }).filter(Boolean);
+  if (!regions.length) return '';
+
+  const max = Math.ceil((Math.max(...regions.map(x => x.to)) + 10) / 10) * 10;
+  const pct = n => ((n - 1) / max * 100);
+
+  return `
+  <div class="codemap">
+    <div class="codemap-head">
+      <p class="eyebrow-sm">Where in the file</p>
+      <p class="mono small muted">${esc(finding.component)}</p>
+    </div>
+    <div class="codemap-track">
+      ${regions.map((x, i) => `<span class="cm-region tone-${x.t}" data-region="${i}" style="left:${pct(x.from).toFixed(2)}%;width:${(pct(x.to + 1) - pct(x.from)).toFixed(2)}%"><b>L${x.from}–${x.to}</b></span>`).join('')}
+    </div>
+    <div class="codemap-scale"><span>line 1</span><span>line ${max}</span></div>
+    <div class="cm-list">
+      ${regions.map((x, i) => `
+      <div class="cm-item" data-region="${i}">
+        <p class="cm-top"><span class="cm-dot tone-${x.t}"></span><b>${x.name}</b><span class="mono muted">L${x.from}–${x.to}</span></p>
+        <p class="cm-issue">${esc(x.issue || '')}</p>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ── Tests ─────────────────────────────────────────────────────────── */
+
+function buildTests({ rv, cf, failE, passE }) {
+  const refMatch = String(failE.failing_assertion || '').match(/refund_reference='([^']+)'/);
+  const ref = refMatch ? refMatch[1] : 'refund_reference';
+
+  function card(kind, e, outcome, regression) {
+    const o = parseOutcome(outcome);
+    const regPass = /PASS/i.test(regression || '');
+    const normal = o.passed - (regPass ? 1 : 0);
+    const expected = num(e.expected_durable_records);
+    const actual = num(e.actual_durable_records);
+    const before = kind === 'before';
+    const calls = Math.max(2, actual || 0);
+    return `
+    <article class="card test-card ${kind}">
+      <div class="tc-head">
+        <div>
+          <p class="eyebrow-sm">${before ? 'Before repair' : `After repair · <span class="mono">${shortSha(rv.repair_commit)}</span>`}</p>
+          <h3 class="tc-status t-${before ? 'red' : 'green'}">${icon(before ? 'error' : 'check_circle')}${before ? 'Test fails' : 'Test passes'}</h3>
+        </div>
+        ${testBar(outcome)}
+      </div>
+      <div class="tc-rows">
+        <div class="tc-row"><span>Normal-operation tests</span><b class="t-green">${normal} / ${normal} pass</b></div>
+        <div class="tc-row"><span>${before ? 'Duplicate-refund test' : 'Same duplicate-refund test'}</span><b class="t-${regPass ? 'green' : 'red'}">${esc(regression || '—')}</b></div>
+      </div>
+
+      <div class="sim" data-expected="${expected ?? ''}" data-actual="${actual ?? ''}" data-calls="${calls}">
+        <div class="sim-head">
+          <p class="eyebrow-sm">Replaying the test: same refund sent twice</p>
+          ${gbtn('Replay', 'text', 'replay', 'data-sim-replay')}
+        </div>
+        <div class="sim-calls">
+          ${Array.from({ length: calls }, (_, i) => `
+          <div class="sim-call" data-call="${i}">
+            <span class="sim-n">${i + 1}</span>
+            <code>process_refund("${esc(ref)}")</code>
+            <span class="sim-res"></span>
+          </div>`).join('')}
+        </div>
+        <div class="sim-table">
+          <div class="sim-tr sim-th"><span>Row</span><span>refund_reference</span><span>State</span></div>
+          <div class="sim-rows"></div>
+        </div>
+        <div class="sim-foot">
+          <span>Expected <b>${expected ?? '—'}</b></span>
+          <span>Actual <b class="sim-count t-${actual !== null && expected !== null && actual > expected ? 'red' : 'green'}">0</b></span>
+        </div>
+      </div>
+
+      ${before
+        ? `<div class="assert"><p class="eyebrow-sm t-red">Failing assertion</p><p class="mono">${esc(failE.failing_assertion || '')}</p></div>`
+        : `<div class="assert ok"><p class="eyebrow-sm t-green">Combined suite</p><p class="mono">${esc(passE.combined_suite_outcome || cf.after_repair_outcome || '')}</p></div>`}
+    </article>`;
+  }
+
+  return `
+  <section class="sec" id="tests" data-theme="light">
+    ${orbs([['red', '-6%', '12%', 300, -0.1], ['green', '86%', '58%', 340, 0.1]])}
+    <div class="wrap">
+      ${head('Tests', 'Proven by a real test.', 'The same pytest test ran before and after the repair. Only the code changed, never the test.', 'green')}
+      <div class="test-pair" data-stagger>
+        ${card('before', failE, cf.before_repair_outcome, cf.before_repair_regression_result)}
+        ${card('after', passE, cf.after_repair_outcome, cf.after_repair_regression_result)}
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ── Proof ─────────────────────────────────────────────────────────── */
+
+function buildProof({ commits, chain }) {
+  const count = ph => commits.filter(c => phaseOf(c.role) === ph).length;
+  const chip = (f, label, n, on) =>
+    `<button class="fchip${on ? ' on' : ''}" data-filter="${f}" aria-pressed="${on}">${icon('check')}<span>${label}</span><em>${n}</em></button>`;
+
+  return `
+  <section class="sec" id="proof" data-theme="paper">
+    <div class="wrap">
+      ${head('Proof', 'Every claim has a receipt.', `${commits.length} commits and ${chain.length} evidence steps, each one traceable in the repository.`, 'blue')}
+    </div>
+    <div class="hs">
+      <div class="hs-sticky">
+        <div class="wrap">
+          <div class="proof-bar" data-reveal>
+            <div class="fchips" role="group" aria-label="Filter commits">
+              ${chip('all', 'All', commits.length, true)}
+              ${chip('historical', 'Historical', count('historical'), false)}
+              ${chip('current', 'Current', count('current'), false)}
+            </div>
+            <div class="hs-meter" aria-hidden="true"><i></i></div>
+            <div class="carousel-nav">
+              <button class="icon-btn" data-scroll="-1" aria-label="Previous commits">${icon('chevron_l')}</button>
+              <button class="icon-btn" data-scroll="1" aria-label="Next commits">${icon('chevron_r')}</button>
+            </div>
+          </div>
+        </div>
+        <div class="carousel" data-reveal>
+          <div class="track">
+            ${commits.map((c, i) => `
+            <article class="card commit" data-phase="${phaseOf(c.role)}" style="--accent:var(--t-${ROLE_TONE[c.role] || 'blue'})">
+              <div class="commit-top"><span class="commit-n">${String(i + 1).padStart(2, '0')}</span><span class="muted small">${esc(c.date || '')}</span></div>
+              ${badge(ROLE_LABELS[c.role] || c.role, ROLE_TONE[c.role])}
+              <p class="commit-msg">${esc(c.message)}</p>
+              <p class="commit-meta"><span class="mono t-blue">${shortSha(c.sha)}</span>${c.author ? ` · ${esc(c.author)}` : ''}</p>
+            </article>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="expand-row center" data-reveal>
+        ${gbtn('Show the full evidence chain', 'tonal', 'expand', 'data-expand="chain" aria-expanded="false"')}
+      </div>
+      <div class="expander" id="chain">
+        <div class="expander-inner">
+          <ol class="chain-grid">
+            ${chain.map((s, i) => `
+            <li class="card chain-card">
+              <div class="chain-top"><span class="chain-n">${String(s.step).padStart(2, '0')}</span>${badge(s.status)}</div>
+              <h4 class="chain-title">${EC_TITLES[i] || `Step ${s.step}`}</h4>
+              <p class="card-text small">${esc(s.description)}</p>
+            </li>`).join('')}
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ── Limits ────────────────────────────────────────────────────────── */
+
+function buildLimits({ r }) {
+  const tiles = (r.limitations || []).map(l => {
+    const headline = l.split(/[—–]/)[0].toUpperCase();
+    const m = LIMIT_DISPLAY.find(d => headline.includes(d.match));
+    return `
+    <div class="card limit" title="${esc(l)}">
+      <span class="icon-bubble sm tone-gray">${icon('info')}</span>
+      <h4 class="limit-title">${m ? m.title : esc(limitTitle(l))}</h4>
+      <p class="card-text small">${m ? m.detail : esc(limitDetail(l).slice(0, 110))}</p>
+    </div>`;
+  }).join('');
+
+  return `
+  <section class="sec" id="limits" data-theme="dark">
+    ${orbs([['blue', '10%', '10%', 360, -0.1], ['red', '80%', '60%', 280, 0.12]])}
+    <div class="wrap">
+      ${head('Limits', 'Honest about the limits.', 'This is a prototype. Here is exactly what it does not do.', 'yellow')}
+      <div class="limit-grid" data-stagger>${tiles}</div>
+    </div>
+  </section>`;
+}
+
+/* ── Behaviour ─────────────────────────────────────────────────────── */
+
+/** Fade / blur / lift in as elements enter; staggered within groups */
+function setupReveals() {
+  document.querySelectorAll('[data-stagger]').forEach(g => {
+    Array.from(g.children).forEach((el, i) => {
+      el.setAttribute('data-reveal', '');
+      el.style.setProperty('--d', `${Math.min(i, 10) * 90}ms`);
+    });
+  });
+  const els = document.querySelectorAll('[data-reveal]');
+  if (REDUCED_MOTION || !('IntersectionObserver' in window)) { els.forEach(el => el.removeAttribute('data-reveal')); return; }
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      el.classList.add('in');
+      obs.unobserve(el);
+      /* hand control back to the element's own hover transitions */
+      const d = parseInt(el.style.getPropertyValue('--d'), 10) || 0;
+      setTimeout(() => { el.removeAttribute('data-reveal'); el.classList.remove('in'); }, 1100 + d);
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
+  els.forEach(el => obs.observe(el));
+}
+
+/** Theme morph + dock state, hero parallax, element parallax, scrub text */
+function setupScrollFx() {
+  const root    = document.documentElement;
+  const hero    = document.querySelector('.hero');
+  const secs    = Array.from(document.querySelectorAll('.sheet > .sec'));
+  const items   = document.querySelectorAll('.dock-item');
+  const speedy  = Array.from(document.querySelectorAll('[data-speed]'));
+  const scrub   = document.querySelector('.scrub');
+  const words   = scrub ? Array.from(scrub.children) : [];
+  let queued = false, lastId = '';
+
+  function frame() {
+    queued = false;
+    const vh = window.innerHeight;
+    const p = Math.min(1, Math.max(0, window.scrollY / vh));
+    hero.style.setProperty('--p', p.toFixed(4));
+    if (window.EchoGlobe) window.EchoGlobe.pause(p >= 0.999);
+
+    /* the last section whose top has passed 60% of the viewport sets the colour theme,
+       so the light sheet is already light as it slides over the dark hero */
+    const mid = vh / 2;
+    const line = vh * 0.6;
+    let cur = null;
+    secs.forEach(s => { if (s.getBoundingClientRect().top <= line) cur = s; });
+    if (!cur && secs[0] && secs[0].getBoundingClientRect().top < vh - 40) cur = secs[0];
+    const id = cur ? cur.id : 'hero';
+    if (id !== lastId) {
+      lastId = id;
+      root.dataset.theme = cur ? cur.dataset.theme : 'dark';
+      items.forEach(a => a.classList.toggle('active', a.dataset.target === id));
+    }
+
+    if (!REDUCED_MOTION) {
+      speedy.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom < -400 || rect.top > vh + 400) return;
+        const offset = el.closest('.hero') ? window.scrollY : (rect.top + rect.height / 2 - mid);
+        el.style.transform = `translate3d(0, ${(offset * +el.dataset.speed).toFixed(1)}px, 0)`;
+      });
+    }
+
+    if (scrub) {
+      const rect = scrub.getBoundingClientRect();
+      const q = Math.min(1, Math.max(0, (vh * 0.85 - rect.top) / (rect.height + vh * 0.3)));
+      const lit = REDUCED_MOTION ? words.length : Math.round(q * words.length);
+      words.forEach((w, i) => w.classList.toggle('lit', i < lit));
+    }
+  }
+  const request = () => { if (!queued) { queued = true; requestAnimationFrame(frame); } };
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request);
+  frame();
+}
+
+/** Mount the hero globe with the historical → current case pair */
+function setupGlobe({ finding, hist }) {
+  const canvas = document.querySelector('.hero-globe');
+  if (!canvas || !window.EchoGlobe) return;
+  const stage = canvas.parentElement;
+  const inner = document.querySelector('.hero-inner');
+  /* keep the globe clear of the headline block (measured without scroll transforms) */
+  const updateClear = () => {
+    const top = inner.offsetTop + inner.offsetHeight;
+    stage.dataset.clear = Math.round(top + 28);
+  };
+  updateClear();
+  window.addEventListener('resize', updateClear);
+
+  const base = p => String(p || '').split('/').pop().replace(/\.py$/, '').replace(/_/g, ' ');
+  const cap  = s => s.replace(/\b\w/g, c => c.toUpperCase());
+  const fix  = ((hist.commits || {}).historical_fix || {}).sha;
+  window.EchoGlobe.mount(canvas, {
+    nodes: [
+      { lat: -0.9, lon: -0.62, color: '#4285F4',
+        label: cap(base((hist.source_files || [])[0])) || 'Historical case',
+        sub:   `Historical bug · fixed ${shortSha(fix)}` },
+      { lat: -0.9, lon: 0.62, color: '#34A853',
+        label: cap(base(finding.component)) || 'Current code',
+        sub:   `${finding.finding_id} · ${finding.status.toLowerCase()}` },
+    ],
+  });
+}
+
+/** Terminal-style replay of the evidence chain, driving the story flow */
+function setupReplay(chain, commits) {
+  const root = document.querySelector('.console');
+  if (!root || !chain.length) return;
+  const body   = root.querySelector('.console-body');
+  const fill   = root.querySelector('.stepper-fill');
+  const steps  = root.querySelectorAll('.stp');
+  const toggle = root.querySelector('[data-replay="toggle"]');
+  const flow   = document.querySelector('.flow');
+  const nodes  = flow ? flow.querySelectorAll('.flow-node') : [];
+
+  /* Evidence-chain step → story stage (presentational mapping) */
+  const nodeFor = i => chain.length === 10
+    ? [0, 0, 0, 1, 2, 2, 3, 3, 4, 5][i]
+    : Math.min(nodes.length - 1, Math.floor(i * nodes.length / chain.length));
+  const dateFor = sha => {
+    const c = commits.find(c => c.sha && sha && c.sha.startsWith(sha));
+    return c && c.date ? c.date : '';
+  };
+  const setToggle = (label, ic) => {
+    toggle.querySelector('span').textContent = label;
+    toggle.querySelector('path').setAttribute('d', ICONS[ic]);
+  };
+
+  let idx = 0, pos = 0, playing = false, timer = 0, textEl = null;
+
+  function header(i) {
+    const s = chain[i];
+    const sha = (s.description.match(/\b[0-9a-f]{7}\b/) || [''])[0];
+    const d = dateFor(sha);
+    const line = document.createElement('div');
+    line.className = 'cl';
+    line.innerHTML = `
+      <div class="cl-meta">
+        <span class="cl-step">${String(s.step).padStart(2, '0')}</span>
+        <b>${esc(EC_TITLES[i] || '')}</b>
+        ${badge(s.status)}
+        ${sha ? `<span class="mono t-blue small">${sha}</span>` : ''}
+        ${d ? `<span class="muted small">${esc(d)}</span>` : ''}
+      </div>
+      <p class="cl-text"></p>`;
+    body.appendChild(line);
+    return line.querySelector('.cl-text');
+  }
+
+  function paint() {
+    const done = idx + (textEl && chain[idx] ? pos / chain[idx].description.length : 0);
+    fill.style.transform = `scaleX(${Math.min(1, done / chain.length)})`;
+    steps.forEach((t, i) => { t.classList.toggle('done', i < idx); t.classList.toggle('now', i === idx); });
+    if (flow) {
+      const cur = idx < chain.length ? nodeFor(idx) : nodes.length - 1;
+      flow.classList.add('playing');
+      nodes.forEach((n, i) => {
+        n.classList.toggle('lit', i <= cur || idx >= chain.length);
+        n.classList.toggle('now', i === cur && idx < chain.length);
+      });
+    }
+    body.scrollTop = body.scrollHeight;
+  }
+  function finishStep() {
+    if (textEl) { textEl.textContent = chain[idx].description; textEl.classList.remove('typing'); }
+    textEl = null; pos = 0; idx++;
+  }
+  function tick() {
+    if (!playing) return;
+    if (idx >= chain.length) { stop(true); return; }
+    if (!textEl) textEl = header(idx);
+    const full = chain[idx].description;
+    pos = Math.min(full.length, pos + 3);
+    textEl.textContent = full.slice(0, pos);
+    textEl.classList.add('typing');
+    paint();
+    if (pos >= full.length) { finishStep(); paint(); timer = setTimeout(tick, 560); }
+    else timer = setTimeout(tick, 16);
+  }
+  function play() { if (idx >= chain.length) return; playing = true; setToggle('Pause', 'pause'); clearTimeout(timer); tick(); }
+  function stop(ended) {
+    playing = false; clearTimeout(timer);
+    setToggle(ended ? 'Play again' : 'Resume', ended ? 'replay' : 'play');
+    if (ended) {
+      paint();
+      body.insertAdjacentHTML('beforeend', `<p class="cl-end">${icon('check_circle')}End of evidence chain. Every line above is read from report.json.</p>`);
+      body.scrollTop = body.scrollHeight;
+    }
+  }
+  function reset() { clearTimeout(timer); body.innerHTML = ''; idx = 0; pos = 0; textEl = null; }
+  function jumpTo(target) { reset(); while (idx < target) { textEl = header(idx); finishStep(); } paint(); }
+
+  toggle.addEventListener('click', () => {
+    if (idx >= chain.length) { reset(); play(); } else if (playing) stop(false); else play();
+  });
+  root.querySelector('[data-replay="restart"]').addEventListener('click', () => { reset(); play(); });
+  root.querySelector('[data-replay="skip"]').addEventListener('click', () => { jumpTo(chain.length); stop(true); });
+  steps.forEach((t, i) => t.addEventListener('click', () => { jumpTo(i); play(); }));
+  document.addEventListener('echo:replay', () => { reset(); play(); });
+
+  if (REDUCED_MOTION) { jumpTo(chain.length); stop(true); return; }
+  onFirstView(root, () => { if (!playing && idx === 0) play(); }, '0px 0px -30% 0px');
+}
+
+/** Animate recorded durable-row counts: identical calls, N resulting rows */
+function setupRetrySims() {
+  document.querySelectorAll('.sim').forEach(sim => {
+    const calls    = +sim.dataset.calls;
+    const expected = num(sim.dataset.expected);
+    const actual   = num(sim.dataset.actual);
+    const rowsEl   = sim.querySelector('.sim-rows');
+    const countEl  = sim.querySelector('.sim-count');
+    const callEls  = sim.querySelectorAll('.sim-call');
+    const table    = sim.querySelector('.sim-table');
+    const ref      = (((sim.querySelector('.sim-call code') || {}).textContent || '').match(/"([^"]+)"/) || ['', ''])[1];
+    let timers = [];
+
+    function step(k, instant) {
+      const call = callEls[k], res = call.querySelector('.sim-res');
+      call.classList.add('active');
+      if (actual !== null && k < actual) {
+        const dup = expected !== null && k >= expected;
+        rowsEl.insertAdjacentHTML('beforeend', `
+          <div class="sim-tr ${dup ? 'dup' : 'ok'}${instant ? '' : ' enter'}">
+            <span>${k + 1}</span><span class="mono">${esc(ref)}</span><span>${dup ? 'Duplicate' : 'Saved'}</span>
+          </div>`);
+        res.innerHTML = dup ? `${icon('error')}Saved again` : `${icon('check')}Saved`;
+        res.className = 'sim-res ' + (dup ? 't-red' : 't-green');
+        countEl.textContent = k + 1;
+      } else {
+        res.innerHTML = `${icon('check_circle')}Ignored, already saved`;
+        res.className = 'sim-res t-blue';
+        if (!instant) { table.classList.remove('shield'); void table.offsetWidth; table.classList.add('shield'); }
+      }
+    }
+    function run() {
+      timers.forEach(clearTimeout); timers = [];
+      rowsEl.innerHTML = ''; countEl.textContent = '0'; table.classList.remove('shield');
+      callEls.forEach(c => { c.classList.remove('active'); const x = c.querySelector('.sim-res'); x.innerHTML = ''; x.className = 'sim-res'; });
+      if (REDUCED_MOTION) { for (let k = 0; k < calls; k++) step(k, true); return; }
+      for (let k = 0; k < calls; k++) timers.push(setTimeout(() => step(k, false), 600 + k * 1400));
+    }
+    sim.querySelector('[data-sim-replay]').addEventListener('click', run);
+    if (REDUCED_MOTION) run(); else onFirstView(sim, run);
+  });
+}
+
+/** Commit carousel: pinned while vertical scroll drives it sideways (native
+    horizontal scroll on phones / reduced motion), plus filter chips and arrows */
+function setupProof() {
+  const hs       = document.querySelector('.hs');
+  const carousel = document.querySelector('.carousel');
+  const track    = document.querySelector('.track');
+  const meter    = document.querySelector('.hs-meter i');
+  const chips    = document.querySelectorAll('.fchip');
+  const cards    = Array.from(document.querySelectorAll('.commit'));
+  const [prev, next] = document.querySelectorAll('[data-scroll]');
+  if (!hs || !track) return;
+
+  let pinned = false, maxShift = 0, p = 0, queued = false;
+  const visible = () => cards.filter(c => !c.classList.contains('gone'));
+  const cardStep = () => (visible()[0] ? visible()[0].offsetWidth + 20 : 320);
+
+  function measure() {
+    pinned = !REDUCED_MOTION && window.innerWidth > 720;
+    hs.classList.toggle('pinned', pinned);
+    if (!pinned) {
+      hs.style.height = '';
+      track.style.transform = '';
+      cards.forEach(c => { c.style.scale = ''; c.style.opacity = ''; c.style.translate = ''; });
+    } else {
+      const vis = visible(), last = vis[vis.length - 1];
+      const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      maxShift = last ? Math.max(0, last.offsetLeft + last.offsetWidth + pad - carousel.clientWidth) : 0;
+      hs.style.height = `${window.innerHeight + maxShift}px`;
+    }
+    update();
+  }
+
+  function update() {
+    queued = false;
+    if (pinned) {
+      p = maxShift ? Math.min(1, Math.max(0, -hs.getBoundingClientRect().top / maxShift)) : 0;
+      track.style.transform = `translate3d(${(-p * maxShift).toFixed(1)}px, 0, 0)`;
+      /* cards curve away and soften toward the edges */
+      const cx = window.innerWidth / 2;
+      visible().forEach(c => {
+        const r = c.getBoundingClientRect();
+        const d = Math.max(-1.6, Math.min(1.6, (r.left + r.width / 2 - cx) / cx));
+        c.style.scale = (1 - Math.abs(d) * 0.07).toFixed(3);
+        c.style.translate = `0 ${(d * d * 18).toFixed(1)}px`;
+        c.style.opacity = (1 - Math.max(0, Math.abs(d) - 0.7) * 0.7).toFixed(3);
+      });
+    } else {
+      const max = track.scrollWidth - track.clientWidth;
+      p = max > 0 ? track.scrollLeft / max : 0;
+    }
+    meter.style.transform = `scaleX(${p.toFixed(4)})`;
+    prev.disabled = p <= 0.002;
+    next.disabled = p >= 0.998;
+  }
+  const request = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
+
+  [prev, next].forEach(b => b.addEventListener('click', () => {
+    const dist = +b.dataset.scroll * cardStep() * 2;
+    const behavior = REDUCED_MOTION ? 'auto' : 'smooth';
+    if (pinned) window.scrollBy({ top: dist, behavior });
+    else track.scrollBy({ left: dist, behavior });
+  }));
+
+  chips.forEach(ch => ch.addEventListener('click', () => {
+    const f = ch.dataset.filter;
+    chips.forEach(x => { x.classList.toggle('on', x === ch); x.setAttribute('aria-pressed', x === ch); });
+    let shown = 0;
+    cards.forEach(c => {
+      const show = f === 'all' || c.dataset.phase === f;
+      c.classList.toggle('gone', !show);
+      if (show) { c.style.setProperty('--d', `${shown++ * 60}ms`); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
+    });
+    measure();
+    if (pinned && hs.getBoundingClientRect().top < 0) window.scrollTo({ top: window.scrollY + hs.getBoundingClientRect().top, behavior: 'auto' });
+    else if (!pinned) track.scrollTo({ left: 0, behavior: REDUCED_MOTION ? 'auto' : 'smooth' });
+    update();
+  }));
+
+  window.addEventListener('scroll', request, { passive: true });
+  track.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', measure);
+  measure();
+}
+
+/** Show/hide panels with a height transition */
+function setupExpanders() {
+  document.querySelectorAll('[data-expand]').forEach(btn => {
+    const panel = document.getElementById(btn.dataset.expand);
+    const label = btn.querySelector('span');
+    const closed = label.textContent;
+    btn.addEventListener('click', () => {
+      const open = panel.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+      label.textContent = open ? closed.replace(/^Show/, 'Hide') : closed;
+    });
+  });
+}
+
+/** Count numbers up from zero when they scroll into view */
+function setupCounters() {
+  if (REDUCED_MOTION) return;
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count, 10);
+    if (isNaN(target)) return;
+    const tail = el.querySelector('span') ? ' ' + el.querySelector('span').outerHTML : '';
+    onFirstView(el, () => {
+      const start = performance.now();
+      (function step(now) {
+        const k = Math.min((now - start) / 900, 1);
+        el.innerHTML = `${Math.round((1 - Math.pow(1 - k, 3)) * target)}${tail}`;
+        if (k < 1) requestAnimationFrame(step);
+      })(start);
+    });
+  });
+}
+
+/** Cursor light on cards, tilt on .tilt cards, code-map cross-highlight */
+function setupPointerFx() {
+  document.querySelectorAll('.codemap [data-region]').forEach(el => {
+    const peers = document.querySelectorAll(`.codemap [data-region="${el.dataset.region}"]`);
+    el.addEventListener('mouseenter', () => peers.forEach(p => p.classList.add('hl')));
+    el.addEventListener('mouseleave', () => peers.forEach(p => p.classList.remove('hl')));
+  });
+  if (REDUCED_MOTION || !window.matchMedia('(hover: hover)').matches) return;
+
+  let last = null, queued = false, current = null;
+  document.addEventListener('pointermove', e => {
+    last = e;
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      const card = last.target.closest && last.target.closest('.card');
+      if (current && current !== card) { current.style.removeProperty('--rx'); current.style.removeProperty('--ry'); }
+      current = card;
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      const x = last.clientX - r.left, y = last.clientY - r.top;
+      card.style.setProperty('--mx', `${x}px`);
+      card.style.setProperty('--my', `${y}px`);
+      if (card.classList.contains('tilt')) {
+        card.style.setProperty('--rx', `${((y / r.height) - 0.5) * -6}deg`);
+        card.style.setProperty('--ry', `${((x / r.width) - 0.5) * 8}deg`);
+      }
+    });
+  }, { passive: true });
+}
+
+/** Material ripple on buttons and chips */
+function setupRipples() {
+  document.addEventListener('pointerdown', e => {
+    const host = e.target.closest('.gbtn, .fchip, .icon-btn, .dock-item, .stp');
+    if (!host || REDUCED_MOTION) return;
+    const r = host.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) * 2;
+    const rip = document.createElement('span');
+    rip.className = 'ripple';
+    rip.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - r.left - size / 2}px;top:${e.clientY - r.top - size / 2}px`;
+    host.appendChild(rip);
+    rip.addEventListener('animationend', () => rip.remove());
+  });
+}
+
+/** Buttons that scroll to a section (and optionally start the replay) */
+function setupGo() {
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    const el = document.getElementById(b.dataset.go);
+    if (!el) return;
+    el.scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth' });
+    if (b.hasAttribute('data-play')) setTimeout(() => document.dispatchEvent(new Event('echo:replay')), REDUCED_MOTION ? 0 : 800);
+  }));
+}
+
+/** 1–9 jump to sections, R restarts the replay */
+function setupKeys() {
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= SECTIONS.length) {
+      const el = document.getElementById(SECTIONS[n - 1].id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth' }); }
+    } else if (e.key === 'r' || e.key === 'R') {
+      document.getElementById('replay').scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth' });
+      document.dispatchEvent(new Event('echo:replay'));
+    }
+  });
+}
+
+/** Run fn once when el first scrolls into view */
+function onFirstView(el, fn, margin = '0px 0px -15% 0px') {
+  if (!el) return;
+  if (!('IntersectionObserver' in window)) { fn(); return; }
+  const io = new IntersectionObserver(entries => {
+    if (entries.some(e => e.isIntersecting)) { io.disconnect(); fn(); }
+  }, { rootMargin: margin });
+  io.observe(el);
+}
+
+  </script>
+</body>
+</html>

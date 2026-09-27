@@ -1,5 +1,196 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "failure-signature.schema.json",
   "title": "Failure Signature",
-  "type": "object"
+  "description": "Output contract for the investigation stage. Encodes a reusable behavioral failure pattern extracted from a confirmed historical case. Consumed by the analysis stage to guide static code inspection of a new target.",
+  "type": "object",
+  "required": [
+    "case_id",
+    "schema_version",
+    "extracted_at",
+    "extraction_status",
+    "reported_behavior",
+    "trigger",
+    "required_conditions",
+    "observed_failure",
+    "expected_invariant",
+    "historical_repair_behavior",
+    "reusable_failure_pattern",
+    "evidence",
+    "confidence"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Stable identifier for this historical case, e.g. 'echocode-case-001-duplicate-operation'."
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Version of this schema."
+    },
+    "extracted_at": {
+      "type": "string",
+      "description": "ISO 8601 date on which this signature was extracted (YYYY-MM-DD)."
+    },
+    "extraction_status": {
+      "type": "string",
+      "enum": ["complete", "partial", "draft"],
+      "description": "'complete' means all evidence fields are populated and confirmed."
+    },
+    "historical_bug_commit": {
+      "type": "string",
+      "description": "Git SHA of the commit that first introduced the defect."
+    },
+    "verification_commit": {
+      "type": "string",
+      "description": "Git SHA of the commit where the behavioral regression test was added."
+    },
+    "historical_fix_commit": {
+      "type": "string",
+      "description": "Git SHA of the commit that applied the repair."
+    },
+    "reported_behavior": {
+      "type": "string",
+      "description": "Human description of the observable failure as reported or observed."
+    },
+    "trigger": {
+      "type": "string",
+      "description": "The specific action or sequence that triggers the failure."
+    },
+    "required_conditions": {
+      "type": "array",
+      "description": "Ordered list of structural conditions that must ALL be present for this failure class to apply. The analysis stage checks each condition against the target codebase.",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "observed_failure": {
+      "type": "object",
+      "required": ["description", "evidence_type", "pytest_outcome"],
+      "description": "Concrete evidence of the failure observed at runtime.",
+      "properties": {
+        "description": { "type": "string" },
+        "ledger_count_before_fix": { "type": "integer" },
+        "ledger_count_expected": { "type": "integer" },
+        "operation_id_used": { "type": "string" },
+        "amount_cents": { "type": "integer" },
+        "evidence_type": { "type": "string" },
+        "pytest_outcome": { "type": "string", "enum": ["PASSED", "FAILED"] },
+        "pytest_assertion": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "expected_invariant": {
+      "type": "string",
+      "description": "The business invariant that this failure violates, stated precisely."
+    },
+    "historical_repair_behavior": {
+      "type": "object",
+      "required": ["description", "behavioral_change", "regression_test_outcome_after_fix", "evidence_type"],
+      "description": "How the repair changed observable behavior, confirmed by real test runs.",
+      "properties": {
+        "description": { "type": "string" },
+        "behavioral_change": { "type": "string" },
+        "regression_test_outcome_after_fix": { "type": "string", "enum": ["PASSED", "FAILED"] },
+        "normal_tests_outcome_after_fix": { "type": "string" },
+        "evidence_type": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "reusable_failure_pattern": {
+      "type": "object",
+      "required": ["name", "summary", "detailed_description", "general_risk_indicators", "analogous_contexts"],
+      "description": "The generalised, technology-agnostic pattern extracted from this case for use in future analyses.",
+      "properties": {
+        "name": { "type": "string" },
+        "summary": { "type": "string" },
+        "detailed_description": { "type": "string" },
+        "general_risk_indicators": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "analogous_contexts": {
+          "type": "array",
+          "description": "Domain variants where this pattern commonly recurs.",
+          "items": { "type": "string" }
+        },
+        "what_to_look_for_in_future_code": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Supporting artefacts: source code excerpts, regression tests, test run outputs, fix diffs.",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "type", "status"],
+        "properties": {
+          "evidence_id": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "buggy_source_code",
+              "regression_test",
+              "fail_test_run",
+              "fix_diff",
+              "pass_test_run",
+              "demo_run_output",
+              "git_history",
+              "source_code"
+            ]
+          },
+          "path": { "type": "string" },
+          "commit": { "type": "string" },
+          "command": { "type": "string" },
+          "at_commit_context": { "type": "string" },
+          "status": { "type": "string" },
+          "outcome": { "type": "string" },
+          "summary": { "type": "string" },
+          "relevant_lines": { "type": "string" },
+          "diff_summary": { "type": "string" },
+          "behavioral_effect": { "type": "string" },
+          "failing_test": { "type": "string" },
+          "assertion": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "code_references": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Short path:line-range references for quick navigation to key code locations."
+    },
+    "commit_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sha", "role", "message"],
+        "properties": {
+          "sha": { "type": "string" },
+          "role": { "type": "string" },
+          "message": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "'high' requires a complete evidence chain: bug commit, regression test FAIL, fix commit, regression test PASS — all from real observed runs."
+    },
+    "confidence_rationale": { "type": "string" },
+    "implementation_details_deliberately_excluded_from_pattern": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Technology-specific details intentionally omitted so the pattern stays general."
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "unresolved_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
 }

@@ -1,5 +1,249 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "report.schema.json",
   "title": "EchoCode Report",
-  "type": "object"
+  "description": "Final output contract for the EchoCode pipeline. Produced by the verification/report_builder stage. Contains all findings, evidence, and verification results from a complete pipeline run. Only actual command and test outputs may appear — no invented results.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "analyzed_commit",
+    "timestamp",
+    "pipeline_version",
+    "findings",
+    "evidence",
+    "verification_results",
+    "limitations"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this pipeline run, e.g. 'echocode-run-2026-09-27-001'."
+    },
+    "analyzed_commit": {
+      "type": "string",
+      "description": "Full Git SHA of the commit that was analyzed in this run."
+    },
+    "analyzed_commit_message": {
+      "type": "string",
+      "description": "Git commit message of the analyzed commit."
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 datetime when this report was produced."
+    },
+    "pipeline_version": {
+      "type": "string",
+      "description": "Version string of the EchoCode pipeline that produced this report."
+    },
+    "branch": {
+      "type": "string",
+      "description": "Git branch on which this run was executed."
+    },
+    "historical_case": {
+      "type": "object",
+      "description": "Summary of the historical case that seeded the failure signature used in this run.",
+      "properties": {
+        "case_id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" },
+        "commits": { "type": "object" },
+        "defect_summary": { "type": "string" },
+        "regression_test_before_fix": { "type": "object" },
+        "regression_test_after_fix": { "type": "object" },
+        "fix_diff_summary": { "type": "string" },
+        "source_files": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "learned_failure_pattern": {
+      "type": "object",
+      "description": "The reusable failure pattern extracted from the historical case and applied to the current analysis.",
+      "properties": {
+        "status": { "type": "string" },
+        "pattern_name": { "type": "string" },
+        "failure_signature_file": { "type": "string" },
+        "extracted_at_commit": { "type": "string" },
+        "extracted_at_commit_message": { "type": "string" },
+        "summary": { "type": "string" },
+        "required_conditions": { "type": "array", "items": { "type": "string" } },
+        "analogous_contexts_from_signature": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "description": "All findings produced by the analysis stage, with their final statuses after verification.",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "title", "component", "status"],
+        "properties": {
+          "finding_id": {
+            "type": "string",
+            "description": "Stable identifier matching the candidate-findings.json entry."
+          },
+          "title": { "type": "string" },
+          "component": {
+            "type": "string",
+            "description": "File path of the component containing the defect."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["CANDIDATE", "CONFIRMED", "REJECTED", "candidate", "confirmed", "rejected"],
+            "description": "'CONFIRMED' requires full behavioral FAIL+PASS evidence. Never invent a confirmed status."
+          },
+          "status_history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["stage", "status", "commit", "basis"],
+              "properties": {
+                "stage": { "type": "string" },
+                "status": { "type": "string" },
+                "commit": { "type": "string" },
+                "commit_message": { "type": "string" },
+                "date": { "type": "string" },
+                "basis": { "type": "string" }
+              }
+            }
+          },
+          "description": { "type": "string" },
+          "structural_evidence": { "type": "object" },
+          "all_conditions_matched": { "type": "boolean" },
+          "matching_conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["condition_id", "historical_condition", "current_evidence"],
+              "properties": {
+                "condition_id": { "type": "string" },
+                "historical_condition": { "type": "string" },
+                "current_evidence": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "description": "All artefacts referenced by findings. Only real, observed evidence — never invented.",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "type", "status", "summary"],
+        "properties": {
+          "evidence_id": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "source_code",
+              "regression_test",
+              "fail_test_run",
+              "fix_diff",
+              "pass_test_run",
+              "historical_failure_signature",
+              "historical_fix_diff",
+              "incident_report",
+              "code_excerpt"
+            ]
+          },
+          "status": { "type": "string" },
+          "path": { "type": "string" },
+          "commit": { "type": "string" },
+          "summary": { "type": "string" },
+          "relevant_to_findings": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "test_file": { "type": "string" },
+          "test_function": { "type": "string" },
+          "at_commit_context": { "type": "string" },
+          "outcome": { "type": "string" },
+          "failing_assertion": { "type": "string" },
+          "expected_durable_records": { "type": "integer" },
+          "actual_durable_records": { "type": "integer" },
+          "diff_summary": { "type": "string" },
+          "behavioral_effect": { "type": "string" },
+          "combined_suite_outcome": { "type": "string" },
+          "regression_test_outcome": { "type": "string" }
+        }
+      }
+    },
+    "verification_results": {
+      "type": "object",
+      "required": ["tests_executed"],
+      "description": "Summary of all pytest runs performed during verification. Only actual test output is recorded.",
+      "properties": {
+        "tests_executed": {
+          "type": "boolean",
+          "description": "false means tests have not yet been run; evidence is illustrative only."
+        },
+        "historical_case": { "type": "object" },
+        "current_case_cf001": { "type": "object" },
+        "illustrative_examples": {
+          "type": "array",
+          "description": "Only present when tests_executed is false. Must not be treated as real results.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "test_id": { "type": "string" },
+              "description": { "type": "string" },
+              "illustrative_outcome": { "type": "string" },
+              "relates_to_finding": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "repair_verification": {
+      "type": "object",
+      "description": "Documents the repair applied to the confirmed finding and the verification outcome.",
+      "properties": {
+        "finding_id": { "type": "string" },
+        "repair_commit": { "type": "string" },
+        "repair_commit_message": { "type": "string" },
+        "repair_commit_date": { "type": "string" },
+        "repair_author": { "type": "string" },
+        "repair_mechanism": { "type": "string" },
+        "repair_verification_status": { "type": "string" },
+        "verification_test": { "type": "string" },
+        "regression_test_after_repair": { "type": "string" },
+        "normal_tests_after_repair": { "type": "string" },
+        "combined_suite_after_repair": { "type": "string" }
+      }
+    },
+    "commit_registry": {
+      "type": "array",
+      "description": "All commits referenced in this report, with roles and observed status.",
+      "items": {
+        "type": "object",
+        "required": ["sha", "role", "message", "status"],
+        "properties": {
+          "sha": { "type": "string" },
+          "role": { "type": "string" },
+          "message": { "type": "string" },
+          "date": { "type": "string" },
+          "author": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      }
+    },
+    "evidence_chain": {
+      "type": "array",
+      "description": "Ordered log of pipeline steps with epistemic status for each.",
+      "items": {
+        "type": "object",
+        "required": ["step", "status", "description"],
+        "properties": {
+          "step": { "type": "integer" },
+          "status": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "Honest constraints on the scope and reliability of this report."
+    }
+  }
 }

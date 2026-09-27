@@ -4,7 +4,7 @@ EchoCode Verification — test_duplicate_refund.py
 ===========================================================================
 Behavioral regression test for CF-001:
   "Unguarded Durable Write in Refund Processor —
-   Retry May Produce Duplicate Refund Record"
+   Retry Produces Duplicate Refund Record"
 
 Business invariant under test
 ------------------------------
@@ -14,14 +14,21 @@ the same refund_reference is submitted.  A client retry or message-queue
 redelivery (same refund_reference, same payload) must NOT create a second
 row.
 
-Current implementation status
-------------------------------
-process_refund() performs a bare INSERT with no prior-existence check and
-refund_records has no UNIQUE constraint on refund_reference.
-This test is therefore expected to FAIL against the current code.
+Implementation status
+---------------------
+The repair was applied at commit e1ce00f ("fix: prevent duplicate refund
+operations").  refund_records now carries a UNIQUE constraint on
+refund_reference and process_refund() uses INSERT OR IGNORE followed by a
+SELECT to retrieve the canonical record.
 
-Expected result:  refund_records contains 1 entry
-Actual result:    refund_records contains 2 entries  ← CF-001 confirmed
+This test therefore PASSES against the current (repaired) code.
+
+Regression history
+------------------
+- At commit f5f4597 (buggy code): test FAILED — got 2 records, expected 1.
+  CF-001 was behaviorally reproduced and promoted from CANDIDATE to CONFIRMED.
+- At commit e1ce00f (repaired code): test PASSES — got 1 record, expected 1.
+  Repair verified.  Test is retained as a permanent regression guard.
 
 Run from the project root:
     python -m pytest verification/tests/test_duplicate_refund.py -v
@@ -76,11 +83,15 @@ def test_retry_with_same_refund_reference_does_not_create_duplicate_record():
     4. Retrieve durable refund records.
     5. Assert the business invariant: exactly ONE record exists.
 
-    This test is expected to FAIL against the current implementation because
-    process_refund() executes a bare INSERT with no deduplication guard and
-    the table schema carries no UNIQUE constraint on refund_reference.
+    Regression history
+    ------------------
+    Originally written to document and capture CF-001.  At commit f5f4597
+    (buggy refund_processor.py with bare INSERT and no UNIQUE constraint) this
+    test FAILED with count=2, confirming the defect behaviorally.
 
-    If the assertion fails with count=2, CF-001 is behaviorally reproduced.
+    After the repair at commit e1ce00f (INSERT OR IGNORE + UNIQUE constraint)
+    this test PASSES with count=1.  It is retained as a permanent regression
+    guard to prevent future regressions to the unguarded-write pattern.
     """
     # Step 1 — store is empty (guaranteed by fixture)
     assert refund_processor.get_refunds() == [], (

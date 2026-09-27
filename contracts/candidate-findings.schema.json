@@ -1,5 +1,181 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate-findings.schema.json",
   "title": "Candidate Findings",
-  "type": "object"
+  "description": "Output contract for the analysis stage. Contains one or more candidate findings produced by static code analysis against a failure signature. A finding must not be marked 'confirmed' until a behavioral test reproduces it.",
+  "type": "object",
+  "required": ["schema_version", "produced_at", "stage", "findings"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Version of this schema.",
+      "example": "1.0"
+    },
+    "produced_at": {
+      "type": "string",
+      "description": "ISO 8601 date on which the analysis was run (YYYY-MM-DD)."
+    },
+    "stage": {
+      "type": "string",
+      "const": "current-code-analysis",
+      "description": "Pipeline stage identifier. Always 'current-code-analysis'."
+    },
+    "source_branch": {
+      "type": "string",
+      "description": "Git branch on which this analysis was produced."
+    },
+    "findings": {
+      "type": "array",
+      "description": "One entry per candidate or confirmed finding.",
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "title",
+          "status",
+          "historical_pattern_reference",
+          "current_code_references",
+          "matching_conditions",
+          "reasoning",
+          "proposed_behavioral_test",
+          "confidence",
+          "limitations"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "finding_id": {
+            "type": "string",
+            "description": "Stable identifier, e.g. 'CF-001'.",
+            "pattern": "^CF-[0-9]+$"
+          },
+          "title": {
+            "type": "string",
+            "description": "One-line description of the structural problem found."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["candidate", "confirmed", "rejected"],
+            "description": "'candidate' until a behavioral test reproduces the defect. 'confirmed' requires a passing pytest test and observed FAIL-before/PASS-after evidence."
+          },
+          "status_history": {
+            "type": "array",
+            "description": "Ordered log of status transitions.",
+            "items": {
+              "type": "object",
+              "required": ["status", "set_at", "reason"],
+              "properties": {
+                "status": { "type": "string" },
+                "set_at": { "type": "string" },
+                "reason": { "type": "string" }
+              }
+            }
+          },
+          "historical_pattern_reference": {
+            "type": "object",
+            "required": ["case_id", "pattern_name", "failure_signature_file"],
+            "description": "Links this finding back to the failure-signature that guided the analysis.",
+            "properties": {
+              "case_id": { "type": "string" },
+              "pattern_name": { "type": "string" },
+              "failure_signature_file": { "type": "string" },
+              "history_map_file": { "type": "string" },
+              "pattern_summary": { "type": "string" }
+            }
+          },
+          "current_code_references": {
+            "type": "array",
+            "description": "One entry per structural condition observed in the current source files.",
+            "items": {
+              "type": "object",
+              "required": ["ref_id", "path", "lines", "description"],
+              "properties": {
+                "ref_id": { "type": "string" },
+                "path": { "type": "string" },
+                "lines": { "type": "string" },
+                "description": { "type": "string" }
+              }
+            }
+          },
+          "matching_conditions": {
+            "type": "array",
+            "description": "For each required condition: what the historical pattern required vs. what was found in current code.",
+            "items": {
+              "type": "object",
+              "required": ["condition_id", "historical_condition", "current_evidence"],
+              "properties": {
+                "condition_id": { "type": "string" },
+                "historical_condition": { "type": "string" },
+                "current_evidence": { "type": "string" }
+              }
+            }
+          },
+          "non_matching_conditions": {
+            "type": "array",
+            "description": "Documented differences from the historical case that do NOT invalidate the match.",
+            "items": {
+              "type": "object",
+              "required": ["condition_id", "aspect", "historical_detail", "current_detail", "relevance"],
+              "properties": {
+                "condition_id": { "type": "string" },
+                "aspect": { "type": "string" },
+                "historical_detail": { "type": "string" },
+                "current_detail": { "type": "string" },
+                "relevance": { "type": "string" }
+              }
+            }
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Narrative connecting all matched conditions to the evidence and explaining the confidence level."
+          },
+          "proposed_behavioral_test": {
+            "type": "object",
+            "required": ["description", "steps", "expected_record_count", "invariant_being_tested", "suggested_test_location"],
+            "description": "Precise specification of the pytest test that would confirm or rule out this finding at runtime.",
+            "properties": {
+              "description": { "type": "string" },
+              "preconditions": { "type": "array", "items": { "type": "string" } },
+              "steps": { "type": "array", "items": { "type": "string" } },
+              "expected_record_count": { "type": "integer" },
+              "failure_indicator": { "type": "string" },
+              "invariant_being_tested": { "type": "string" },
+              "suggested_test_location": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          },
+          "verification_evidence": {
+            "type": "object",
+            "description": "Populated by the verification stage after behavioral tests are run. Not present for pure candidates.",
+            "properties": {
+              "regression_test_file": { "type": "string" },
+              "regression_test_function": { "type": "string" },
+              "regression_test_commit": { "type": "string" },
+              "before_repair": { "type": "object" },
+              "after_repair": { "type": "object" }
+            }
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "confirmed"],
+            "description": "'confirmed' only when full behavioral FAIL+PASS evidence chain is complete."
+          },
+          "confidence_rationale": {
+            "type": "string",
+            "description": "Explanation of why the confidence level was assigned."
+          },
+          "limitations": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "What static analysis cannot guarantee about this finding."
+          },
+          "unresolved_questions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Open design or operational questions not answered by the analysis."
+          }
+        }
+      }
+    }
+  }
 }
